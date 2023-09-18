@@ -1,6 +1,6 @@
 const { axiosHttpService } = require("../axioscall");
 
-const createPostOption = (user) => {
+const createUserOption = (user) => {
 	if (!user) {
 		return;
 	}
@@ -34,12 +34,12 @@ const createPostOption = (user) => {
 	};
 };
 
-const createPost = async (post) => {
-	if (!post) {
+const createUser = async (user) => {
+	if (!user) {
 		return;
 	}
 	const id = Math.floor(Date.now() / 1000);
-	let result = await axiosHttpService(createPostOption(post, id));
+	let result = await axiosHttpService(createUserOption(user, id));
 	if (result.code === 201) {
 		return { Id: id, ...result.res };
 	}
@@ -72,4 +72,4 @@ const getUserProfile = async (id) => {
 	return;
 };
 
-module.exports = { createPost };
+module.exports = { createUser };

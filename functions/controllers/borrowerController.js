@@ -1,8 +1,10 @@
 const { logger } = require("firebase-functions/v1");
-const { createPost } = require("../services/hyperLedgerFunctions/userAsset");
+const {
+	createPost: createUser,
+} = require("../services/hyperLedgerFunctions/userAsset");
 
 // Create post
-exports.createPost = async (req, res) => {
+exports.createUser = async (req, res) => {
 	try {
 		// validate the body
 		if (!req.body) {
@@ -16,7 +18,7 @@ exports.createPost = async (req, res) => {
 		}
 
 		// store in hyperledger
-		var result = await createPost(req.body);
+		var result = await createUser(req.body);
 		if (result.Id) {
 			res.status(201).json(result.Id);
 		} else {
