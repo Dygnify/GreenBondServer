@@ -1,7 +1,7 @@
 const { axiosHttpService } = require("../axioscall");
 
-const createUserOption = (user) => {
-	if (!user) {
+const createUserOption = (user, id) => {
+	if (!user || !id) {
 		return;
 	}
 
@@ -9,12 +9,13 @@ const createUserOption = (user) => {
 		assetType: "User",
 		data: [
 			{
+				Id: id,
 				...user,
 				ledgerMetadata: {
 					owners: [
 						{
 							orgId: process.env.SPYDRA_MEMBERSHIP_ID,
-							user: user.userId,
+							user: user.email,
 						},
 					],
 				},
@@ -34,7 +35,7 @@ const createUserOption = (user) => {
 	};
 };
 
-const createUser = async (user) => {
+const createNewUser = async (user) => {
 	if (!user) {
 		return;
 	}
@@ -46,30 +47,44 @@ const createUser = async (user) => {
 	return result;
 };
 
-const getUserProfileOption = (id) => {
-	if (!id) {
+const getUserWithEmailOption = (email) => {
+	if (!email) {
 		return;
 	}
+	let data = JSON.stringify({
+		query: `{
+          User(email: "${email}"){
+              Id,
+              email,
+              profile,
+              role, 
+              ledgerMetadata{
+                owners
+              }
+      }}`,
+	});
 
 	return {
-		method: "get",
+		method: "post",
 		maxBodyLength: Infinity,
-		url: `https://${process.env.REACT_APP_SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.REACT_APP_SPYDRA_APP_ID}/asset?assetType=User&id=${id}`,
+		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/graphql`,
 		headers: {
-			"X-API-KEY": process.env.REACT_APP_SPYDRA_API_KEY,
+			"X-API-KEY": process.env.SPYDRA_API_KEY,
+			"Content-Type": "application/json",
 		},
+		data: data,
 	};
 };
 
-const getUserProfile = async (id) => {
-	if (!id) {
+const getUserWithEmail = async (email) => {
+	if (!email) {
 		return;
 	}
-	let result = await axiosHttpService(getUserProfileOption(id));
+	let result = await axiosHttpService(getUserWithEmailOption(email));
 	if (result.code === 200) {
-		return result.res;
+		return result.res.data.User;
 	}
 	return;
 };
 
-module.exports = { createUser };
+module.exports = { createNewUser, getUserWithEmail };

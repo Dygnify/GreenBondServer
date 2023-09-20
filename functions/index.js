@@ -3,7 +3,7 @@ const functions = require("firebase-functions");
 const { onRequest } = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
-const borrowerRoutes = require("./routes/borrowerRoutes");
+const userRoutes = require("./routes/userRoutes");
 const app = express();
 const cors = require("cors");
 admin.initializeApp();
@@ -13,6 +13,6 @@ app.use(
 		allowedHeaders: ["Content-Type"],
 	})
 );
-app.use("/borrower", borrowerRoutes);
+app.use("/borrower", userRoutes);
 
 exports.api = functions.https.onRequest(app);
