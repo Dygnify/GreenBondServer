@@ -1,6 +1,7 @@
 const Joi = require("joi");
 
 const GreenBond = Joi.object({
+	Id: Joi.number(),
 	borrowerId: Joi.string().required(),
 	capital_loss: Joi.string(),
 	collateralHash: Joi.string().required(),
