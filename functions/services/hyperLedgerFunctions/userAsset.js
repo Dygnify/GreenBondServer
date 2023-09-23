@@ -1,30 +1,18 @@
+const { logger } = require("firebase-functions/v1");
 const { axiosHttpService } = require("../axioscall");
 
-const createUserOption = (user, id) => {
-	if (!user || !id) {
+const createUserOption = (user) => {
+	if (!user) {
 		return;
 	}
 
 	let data = JSON.stringify({
 		assetType: "User",
-		data: [
-			{
-				Id: id,
-				...user,
-				ledgerMetadata: {
-					owners: [
-						{
-							orgId: process.env.SPYDRA_MEMBERSHIP_ID,
-							user: user.email,
-						},
-					],
-				},
-			},
-		],
+		data: [user],
 	});
 
 	return {
-		method: "post",
+		method: "put",
 		maxBodyLength: Infinity,
 		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset`,
 		headers: {
@@ -39,21 +27,37 @@ const createNewUser = async (user) => {
 	if (!user) {
 		return;
 	}
-	const id = Math.floor(Date.now() / 1000);
-	let result = await axiosHttpService(createUserOption(user, id));
+	let data = user;
+	if (!user.Id) {
+		const id = Math.floor(Date.now() / 1000);
+		data = {
+			Id: id,
+			...user,
+			ledgerMetadata: {
+				owners: [
+					{
+						orgId: process.env.SPYDRA_MEMBERSHIP_ID,
+						user: user.email,
+					},
+				],
+			},
+		};
+	}
+	let result = await axiosHttpService(createUserOption(data));
 	if (result.code === 201) {
-		return { Id: id, ...result.res };
+		return { Id: data.Id, ...result.res };
 	}
 	return result;
 };
 
-const getUserWithEmailOption = (email) => {
-	if (!email) {
+const getUserWithEmailOption = (email, role) => {
+	if (!email || role === undefined) {
 		return;
 	}
+	logger.log(email, role);
 	let data = JSON.stringify({
 		query: `{
-          User(email: "${email}"){
+          User(email: "${email}", role: ${role}){
               Id,
               email,
               profile,
@@ -76,15 +80,22 @@ const getUserWithEmailOption = (email) => {
 	};
 };
 
-const getUserWithEmail = async (email) => {
-	if (!email) {
+const getUserWithEmail = async (email, role) => {
+	logger.log(email, role);
+	if (!email || role === undefined) {
 		return;
 	}
-	let result = await axiosHttpService(getUserWithEmailOption(email));
-	if (result.code === 200) {
-		return result.res.data.User;
+	try {
+		let result = await axiosHttpService(
+			getUserWithEmailOption(email, role)
+		);
+		if (result.code === 200) {
+			return result.res.data.User;
+		}
+		return;
+	} catch (error) {
+		logger.error(error);
 	}
-	return;
 };
 
 module.exports = { createNewUser, getUserWithEmail };

@@ -40,11 +40,9 @@ const getUsers = async (req, res) => {
 			response.status(400).send("Invalid data");
 		}
 
-		var result = await getUserWithEmail(req.body.email);
+		var result = await getUserWithEmail(req.body.email, req.body.role);
 		if (result) {
-			return res.status(201).json(result);
-		} else {
-			return res.status(result.code).json(result.res);
+			return res.status(200).json(result);
 		}
 	} catch (error) {
 		logger.error(error);
