@@ -37,7 +37,7 @@ const createGreenBond = async (bond) => {
 				owners: [
 					{
 						orgId: process.env.SPYDRA_MEMBERSHIP_ID,
-						UserId: bond.borrowerId,
+						UserId: bond.borrowerId.toString(),
 					},
 				],
 			},
@@ -73,7 +73,7 @@ const getGreenBond = async (Id) => {
 	try {
 		let result = await axiosHttpService(getGreenBondOption(Id));
 		if (result.code === 200) {
-			return result.res.records;
+			return result.res;
 		}
 		return;
 	} catch (error) {
@@ -81,4 +81,26 @@ const getGreenBond = async (Id) => {
 	}
 };
 
-module.exports = { createGreenBond, getGreenBond };
+const getAllGreenBondsOption = () => {
+	return {
+		method: "get",
+		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset/all?assetType=GreenBond`,
+		headers: {
+			"X-API-KEY": process.env.SPYDRA_API_KEY,
+		},
+	};
+};
+
+const getAllGreenBonds = async () => {
+	try {
+		let result = await axiosHttpService(getAllGreenBondsOption());
+		if (result.code === 200) {
+			return result.res;
+		}
+		return;
+	} catch (error) {
+		logger.error(error);
+	}
+};
+
+module.exports = { createGreenBond, getGreenBond, getAllGreenBonds };

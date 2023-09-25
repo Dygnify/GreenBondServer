@@ -2,6 +2,7 @@ const { logger } = require("firebase-functions/v1");
 const {
 	createGreenBond,
 	getGreenBond,
+	getAllGreenBonds,
 } = require("../services/hyperLedgerFunctions/greenBond");
 const GreenBond = require("../models/greenBond");
 
@@ -32,7 +33,7 @@ const createBond = async (req, res) => {
 	res.status(400).send("Invalid request");
 };
 
-// Get list of bonds
+// Get list of bonds for an user
 const getBonds = async (req, res) => {
 	try {
 		if (!req.body) {
@@ -50,4 +51,17 @@ const getBonds = async (req, res) => {
 	res.status(400).json("Invalid request");
 };
 
-module.exports = { createBond, getBonds };
+// Get list of all bonds
+const getAllBonds = async (req, res) => {
+	try {
+		var result = await getAllGreenBonds();
+		if (result) {
+			return res.status(200).json(result);
+		}
+	} catch (error) {
+		logger.error(error);
+	}
+	res.status(400).json("Invalid request");
+};
+
+module.exports = { createBond, getBonds, getAllBonds };
