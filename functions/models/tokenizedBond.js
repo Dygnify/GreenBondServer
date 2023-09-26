@@ -1,6 +1,7 @@
 const Joi = require("joi");
 
 const TokenizedBond = Joi.object({
+	Id: Joi.string(),
 	bondAmount: Joi.number().required(),
 	bondId: Joi.string().required(),
 	bondInterest: Joi.number().required(),

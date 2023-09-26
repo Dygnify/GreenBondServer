@@ -1,6 +1,7 @@
 const Joi = require("joi");
 
 const Transaction = Joi.object({
+	Id: Joi.string(),
 	bondId: Joi.string().required(),
 	bondName: Joi.string().required(),
 	amount: Joi.number().required(),
