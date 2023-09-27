@@ -3,6 +3,7 @@ const {
 	createGreenBond,
 	getGreenBond,
 	getAllGreenBonds,
+	vote,
 } = require("../services/hyperLedgerFunctions/greenBond");
 const GreenBond = require("../models/greenBond");
 
@@ -64,4 +65,27 @@ const getAllBonds = async (req, res) => {
 	res.status(400).json("Invalid request");
 };
 
-module.exports = { createBond, getBonds, getAllBonds };
+// Get list of all bonds
+const voteOpportunity = async (req, res) => {
+	try {
+		// validate the body
+		if (!req.body) {
+			logger.error("Invalid request data");
+			response.status(400).send("Invalid data");
+		}
+
+		const { error } = GreenBond.validate(req.body.bond);
+		if (error) {
+			return res.status(400).send(error.details);
+		}
+		var result = await vote(req.body.bond, req.body.vote);
+		if (result) {
+			return res.status(200).json(result);
+		}
+	} catch (error) {
+		logger.error(error);
+	}
+	res.status(400).json("Invalid request");
+};
+
+module.exports = { createBond, getBonds, getAllBonds, voteOpportunity };

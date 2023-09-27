@@ -31,7 +31,7 @@ const createGreenBond = async (bond) => {
 	if (!bond.Id) {
 		const id = Math.floor(Date.now() / 1000);
 		data = {
-			Id: id,
+			Id: id.toString(),
 			...bond,
 			ledgerMetadata: {
 				owners: [
@@ -103,4 +103,43 @@ const getAllGreenBonds = async () => {
 	}
 };
 
-module.exports = { createGreenBond, getGreenBond, getAllGreenBonds };
+const voteOption = (bond, voteId) => {
+	if (!bond || !voteId) {
+		return;
+	}
+
+	let data = JSON.stringify({
+		assetType: "GreenBond",
+		data: [bond],
+	});
+
+	return {
+		method: "put",
+		maxBodyLength: Infinity,
+		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset`,
+		headers: {
+			"Content-Type": "application/json",
+			"X-API-KEY": process.env.SPYDRA_API_KEY,
+		},
+		data: data,
+	};
+};
+
+const vote = async (bond, voteId) => {
+	if (!bond && !bond.Id && !voteId) {
+		return;
+	}
+	let data = bond;
+	data = {
+		...bond,
+		status: voteId,
+	};
+	console.log(voteOption(data));
+	let result = await axiosHttpService(voteOption(data, vote));
+	if (result.code === 201) {
+		return { Id: data.Id, ...result.res };
+	}
+	return result;
+};
+
+module.exports = { createGreenBond, getGreenBond, getAllGreenBonds, vote };

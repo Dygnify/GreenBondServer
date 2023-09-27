@@ -31,7 +31,7 @@ const createNewUser = async (user) => {
 	if (!user.Id) {
 		const id = Math.floor(Date.now() / 1000);
 		data = {
-			Id: id,
+			Id: id.toString(),
 			...user,
 			ledgerMetadata: {
 				owners: [
