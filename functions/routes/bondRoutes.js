@@ -3,7 +3,7 @@ const {
 	createBond,
 	getBonds,
 	getAllBonds,
-	voteOpportunity,
+	voteForBond,
 } = require("../controllers/greenBondController");
 
 const router = express.Router();
@@ -11,6 +11,6 @@ const router = express.Router();
 router.post("/createBond", createBond);
 router.post("/getBond", getBonds);
 router.post("/getAllBonds", getAllBonds);
-router.post("/vote", voteOpportunity);
+router.post("/vote", voteForBond);
 
 module.exports = router;

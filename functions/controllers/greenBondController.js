@@ -7,7 +7,7 @@ const {
 } = require("../services/hyperLedgerFunctions/greenBond");
 const GreenBond = require("../models/greenBond");
 
-// Create post
+// Create bond
 const createBond = async (req, res) => {
 	try {
 		// validate the body
@@ -65,8 +65,8 @@ const getAllBonds = async (req, res) => {
 	res.status(400).json("Invalid request");
 };
 
-// Get list of all bonds
-const voteOpportunity = async (req, res) => {
+// Vote for bonds
+const voteForBond = async (req, res) => {
 	try {
 		// validate the body
 		if (!req.body) {
@@ -88,4 +88,4 @@ const voteOpportunity = async (req, res) => {
 	res.status(400).json("Invalid request");
 };
 
-module.exports = { createBond, getBonds, getAllBonds, voteOpportunity };
+module.exports = { createBond, getBonds, getAllBonds, voteForBond };
