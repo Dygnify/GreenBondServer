@@ -5,6 +5,7 @@ const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 const userRoutes = require("./routes/userRoutes");
 const bondRoutes = require("./routes/bondRoutes");
+const transactionRoutes = require("./routes/transactionRoutes");
 const app = express();
 const cors = require("cors");
 admin.initializeApp();
@@ -16,5 +17,6 @@ app.use(
 );
 app.use("/borrower", userRoutes);
 app.use("/bond", bondRoutes);
+app.use("/transaction", transactionRoutes);
 
 exports.api = functions.https.onRequest(app);

@@ -3,7 +3,6 @@ const {
 	createBond,
 	getBonds,
 	getAllBonds,
-	voteForBond,
 } = require("../controllers/greenBondController");
 
 const router = express.Router();

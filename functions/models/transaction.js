@@ -13,7 +13,7 @@ const Transaction = Joi.object({
 	issuerId: Joi.string(),
 	subscriberId: Joi.string(),
 	principalPortion: Joi.number(),
-	trxHash: Joi.string().required(),
+	txHash: Joi.string().required(),
 });
 
 module.exports = Transaction;
