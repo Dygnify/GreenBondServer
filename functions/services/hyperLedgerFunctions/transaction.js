@@ -52,4 +52,35 @@ const createTx = async (transaction) => {
 	return result;
 };
 
-module.exports = { createTx };
+const getTxByBondIdOption = (bondId) => {
+	if (!bondId) {
+		return;
+	}
+	logger.log(bondId);
+
+	return {
+		method: "get",
+		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset/all?assetType=Transaction&actAs=bondId:${bondId}`,
+		headers: {
+			"X-API-KEY": process.env.SPYDRA_API_KEY,
+		},
+	};
+};
+
+const getTxByBondId = async (bondId) => {
+	logger.log(bondId);
+	if (!bondId) {
+		return;
+	}
+	try {
+		let result = await axiosHttpService(getTxByBondIdOption(bondId));
+		if (result.code === 200) {
+			return result.res;
+		}
+		return;
+	} catch (error) {
+		logger.error(error);
+	}
+};
+
+module.exports = { createTx, getTxByBondId };
