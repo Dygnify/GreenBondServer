@@ -1,7 +1,7 @@
 const { logger } = require("firebase-functions/v1");
 const {
 	createTx,
-	getTxByBondId,
+	getTx,
 } = require("../services/hyperLedgerFunctions/transaction");
 const Transaction = require("../models/transaction");
 
@@ -33,14 +33,14 @@ const createTransaction = async (req, res) => {
 };
 
 // Get list of bonds by bondd
-const getTransactionByBondId = async (req, res) => {
+const getTransaction = async (req, res) => {
 	try {
 		if (!req.body) {
 			logger.error("Invalid request data");
 			response.status(400).send("Invalid data");
 		}
 
-		var result = await getTxByBondId(req.body.bondId);
+		var result = await getTx(req.body.field, req.body.value);
 		if (result) {
 			return res.status(200).json(result);
 		}
@@ -50,4 +50,4 @@ const getTransactionByBondId = async (req, res) => {
 	res.status(400).json("Invalid request");
 };
 
-module.exports = { createTransaction, getTransactionByBondId };
+module.exports = { createTransaction, getTransaction };

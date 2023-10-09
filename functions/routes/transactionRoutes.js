@@ -1,12 +1,12 @@
 const express = require("express");
 const {
 	createTransaction,
-	getTransactionByBondId,
+	getTransaction,
 } = require("../controllers/transactionController");
 
 const router = express.Router();
 
 router.post("/createTx", createTransaction);
-router.post("/getTxByBondId", getTransactionByBondId);
+router.post("/getTx", getTransaction);
 
 module.exports = router;

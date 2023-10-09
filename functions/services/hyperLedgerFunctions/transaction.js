@@ -52,28 +52,28 @@ const createTx = async (transaction) => {
 	return result;
 };
 
-const getTxByBondIdOption = (bondId) => {
-	if (!bondId) {
+const getTxOption = (field, value) => {
+	if (!field || !value) {
 		return;
 	}
-	logger.log(bondId);
+	logger.log(field, value);
 
 	return {
 		method: "get",
-		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset/all?assetType=Transaction&actAs=bondId:${bondId}`,
+		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset/all?assetType=Transaction&actAs=${field}:${value}`,
 		headers: {
 			"X-API-KEY": process.env.SPYDRA_API_KEY,
 		},
 	};
 };
 
-const getTxByBondId = async (bondId) => {
-	logger.log(bondId);
-	if (!bondId) {
+const getTx = async (field, value) => {
+	logger.log(field, value);
+	if (!field || !value) {
 		return;
 	}
 	try {
-		let result = await axiosHttpService(getTxByBondIdOption(bondId));
+		let result = await axiosHttpService(getTxOption(field, value));
 		if (result.code === 200) {
 			return result.res;
 		}
@@ -83,4 +83,4 @@ const getTxByBondId = async (bondId) => {
 	}
 };
 
-module.exports = { createTx, getTxByBondId };
+module.exports = { createTx, getTx };
