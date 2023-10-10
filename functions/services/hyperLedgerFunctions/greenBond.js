@@ -50,28 +50,37 @@ const createGreenBond = async (bond) => {
 	return result;
 };
 
-const getGreenBondOption = (Id) => {
-	if (!Id) {
+const getGreenBondOption = (field, value) => {
+	if (!field || !value) {
 		return;
 	}
-	logger.log(Id);
-
-	return {
-		method: "get",
-		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset/all?assetType=GreenBond&actAs=UserId:${Id}`,
-		headers: {
-			"X-API-KEY": process.env.SPYDRA_API_KEY,
-		},
-	};
+	logger.log(field, value);
+	if (field === "UserId") {
+		return {
+			method: "get",
+			url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset/all?assetType=GreenBond&actAs=UserId:${value}`,
+			headers: {
+				"X-API-KEY": process.env.SPYDRA_API_KEY,
+			},
+		};
+	} else if (field === "Id") {
+		return {
+			method: "get",
+			url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset?assetType=GreenBond&id=${value}`,
+			headers: {
+				"X-API-KEY": process.env.SPYDRA_API_KEY,
+			},
+		};
+	}
 };
 
-const getGreenBond = async (Id) => {
-	logger.log(Id);
-	if (!Id) {
+const getGreenBond = async ({ field, value }) => {
+	logger.log(field, value);
+	if (!field || !value) {
 		return;
 	}
 	try {
-		let result = await axiosHttpService(getGreenBondOption(Id));
+		let result = await axiosHttpService(getGreenBondOption(field, value));
 		if (result.code === 200) {
 			return result.res;
 		}
