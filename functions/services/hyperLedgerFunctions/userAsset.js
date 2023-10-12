@@ -98,4 +98,35 @@ const getUserWithEmail = async (email, role) => {
 	}
 };
 
-module.exports = { createNewUser, getUserWithEmail };
+const getUserOption = (Id) => {
+	if (!Id) {
+		return;
+	}
+	logger.log(Id);
+
+	return {
+		method: "get",
+		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset?assetType=User&id=${Id}`,
+		headers: {
+			"X-API-KEY": process.env.SPYDRA_API_KEY,
+		},
+	};
+};
+
+const getUser = async (Id) => {
+	logger.log(Id);
+	if (!Id) {
+		return;
+	}
+	try {
+		let result = await axiosHttpService(getUserOption(Id));
+		if (result.code === 200) {
+			return result.res;
+		}
+		return;
+	} catch (error) {
+		logger.error(error);
+	}
+};
+
+module.exports = { createNewUser, getUserWithEmail, getUser };

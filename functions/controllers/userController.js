@@ -2,6 +2,7 @@ const { logger } = require("firebase-functions/v1");
 const {
 	createNewUser,
 	getUserWithEmail,
+	getUser,
 } = require("../services/hyperLedgerFunctions/userAsset");
 const User = require("../models/user");
 
@@ -39,8 +40,13 @@ const getUsers = async (req, res) => {
 			logger.error("Invalid request data");
 			response.status(400).send("Invalid data");
 		}
+		let result;
+		if (req.body.Id) {
+			result = await getUser(req.body.Id);
+		} else {
+			result = await getUserWithEmail(req.body.email, req.body.role);
+		}
 
-		var result = await getUserWithEmail(req.body.email, req.body.role);
 		if (result) {
 			return res.status(200).json(result);
 		}
