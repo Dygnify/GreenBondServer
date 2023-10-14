@@ -50,4 +50,35 @@ const createTokenized = async (tokenizedBond) => {
 	return result;
 };
 
-module.exports = { createTokenized };
+const getTokenizedOption = (field, value) => {
+	if (!field || !value) {
+		return;
+	}
+	logger.log(field, value);
+
+	return {
+		method: "get",
+		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset/all?assetType=TokenizedBond&actAs=${field}:${value}`,
+		headers: {
+			"X-API-KEY": process.env.SPYDRA_API_KEY,
+		},
+	};
+};
+
+const getTokenized = async (field, value) => {
+	logger.log(field, value);
+	if (!field || !value) {
+		return;
+	}
+	try {
+		let result = await axiosHttpService(getTokenizedOption(field, value));
+		if (result.code === 200) {
+			return result.res;
+		}
+		return;
+	} catch (error) {
+		logger.error(error);
+	}
+};
+
+module.exports = { createTokenized, getTokenized };
