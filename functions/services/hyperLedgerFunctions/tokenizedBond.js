@@ -56,6 +56,16 @@ const getTokenizedOption = (field, value) => {
 	}
 	logger.log(field, value);
 
+	if (field === "Id") {
+		return {
+			method: "get",
+			url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset?assetType=TokenizedBond&id=${value}&depth=0`,
+			headers: {
+				"X-API-KEY": process.env.SPYDRA_API_KEY,
+			},
+		};
+	}
+
 	return {
 		method: "get",
 		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset/all?assetType=TokenizedBond&actAs=${field}:${value}`,
