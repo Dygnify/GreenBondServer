@@ -57,7 +57,15 @@ const getTxOption = (field, value) => {
 		return;
 	}
 	logger.log(field, value);
-
+	if (field === "Id") {
+		return {
+			method: "get",
+			url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset?assetType=Transaction&id=${value}&depth=0`,
+			headers: {
+				"X-API-KEY": process.env.SPYDRA_API_KEY,
+			},
+		};
+	}
 	return {
 		method: "get",
 		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset/all?assetType=Transaction&actAs=${field}:${value}`,
