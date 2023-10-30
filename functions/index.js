@@ -7,6 +7,7 @@ const userRoutes = require("./routes/userRoutes");
 const bondRoutes = require("./routes/bondRoutes");
 const transactionRoutes = require("./routes/transactionRoutes");
 const tokenizedBondRoutes = require("./routes/tokenizedBondRoutes");
+const accountingRoutes = require("./routes/accountingRoutes");
 const app = express();
 const cors = require("cors");
 admin.initializeApp();
@@ -20,5 +21,6 @@ app.use("/borrower", userRoutes);
 app.use("/bond", bondRoutes);
 app.use("/transaction", transactionRoutes);
 app.use("/tokenizedBond", tokenizedBondRoutes);
+app.use("/accounting", accountingRoutes);
 
 exports.api = functions.https.onRequest(app);
