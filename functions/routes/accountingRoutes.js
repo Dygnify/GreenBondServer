@@ -4,7 +4,8 @@ const {
 	getTermLoanInterestComponentOfEMI,
 	getNextRepaymentDate,
 	getTranchwiseYieldPercentage,
-	getAmortisationSchedule,
+	getTermLoanAmortisationSchedule,
+	getBulletLoanAmortisationSchedule,
 } = require("../controllers/accountingController");
 
 const router = express.Router();
@@ -16,6 +17,10 @@ router.get(
 );
 router.get("/getNextRepaymentDate", getNextRepaymentDate);
 router.get("/getTranchwiseYieldPercentage", getTranchwiseYieldPercentage);
-router.get("/getAmortisationSchedule", getAmortisationSchedule);
+router.get("/getTermLoanAmortisationSchedule", getTermLoanAmortisationSchedule);
+router.get(
+	"/getBulletLoanAmortisationSchedule",
+	getBulletLoanAmortisationSchedule
+);
 
 module.exports = router;

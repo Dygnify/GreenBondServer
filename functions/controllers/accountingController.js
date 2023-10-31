@@ -209,7 +209,7 @@ const getTranchwiseYieldPercentage = async (req, res) => {
 	return res.status(400).json("Invalid request");
 };
 
-function generateLoanCashflows(
+function generateTermLoanCashflows(
 	principal,
 	interestRate,
 	loanTermInMonths,
@@ -356,10 +356,10 @@ function generateLoanCashflows(
 			const juniorPricipalPortion =
 				(principalPayment * juniorTranchFeePercentage) / 100;
 			juniorAccumulatedPrincipal += juniorPricipalPortion;
-			const monthlyFloatPercentage =
-				JuniorPrincipalFloatInterestPercentage / 12 / 100;
+			const dailyFloatPercentage =
+				JuniorPrincipalFloatInterestPercentage / 365 / 100;
 			const floatOnPrincipal =
-				juniorAccumulatedPrincipal * monthlyFloatPercentage;
+				juniorAccumulatedPrincipal * dailyFloatPercentage * noOfDays;
 			const juniorPayout = juniorInterestPortion + floatOnPrincipal;
 			const totalJuniorPayout =
 				month === loanTermInMonths
@@ -394,7 +394,7 @@ function generateLoanCashflows(
 	return undefined;
 }
 
-const getAmortisationSchedule = async (req, res) => {
+const getTermLoanAmortisationSchedule = async (req, res) => {
 	try {
 		// validate the body
 		if (!req.body) {
@@ -414,7 +414,225 @@ const getAmortisationSchedule = async (req, res) => {
 			seniorInvestorCashFlow,
 			juniorAmortisationSchedule,
 			juniorInvestorCashFlow,
-		} = generateLoanCashflows(
+		} = generateTermLoanCashflows(
+			req.body.loanAmount,
+			req.body.interestRatePercentage,
+			req.body.tenureInMonths,
+			req.body.disbursmentDate,
+			req.body.investorUpfrontFees,
+			req.body.platformFeesPercentage,
+			req.body.JuniorContributionPercentage,
+			req.body.JuniorPrincipalFloatPercentage
+		);
+
+		console.log("Loan Cashflows:");
+		console.table(amortisationSchedule);
+		console.table(cashFlow);
+		var rate = xirr(cashFlow);
+		console.log("Borrower XIRR : ", rate * 100);
+		console.table(seniorAmortisationSchedule);
+		console.table(seniorInvestorCashFlow);
+		console.log("Senior XIRR : ", xirr(seniorInvestorCashFlow) * 100);
+		console.table(juniorAmortisationSchedule);
+		console.table(juniorInvestorCashFlow);
+		console.log("Junior XIRR : ", xirr(juniorInvestorCashFlow) * 100);
+		return res.status(200).json({ amortisationSchedule, cashFlow });
+	} catch (error) {
+		logger.log(error);
+	}
+	return res.status(400).send("Invalid request");
+};
+
+function generateBulletLoanCashflows(
+	principal,
+	interestRate,
+	loanTermInMonths,
+	disbursementDate,
+	investorUpfrontFeePercentage,
+	platformFeePercentage,
+	juniorTranchFeePercentage,
+	JuniorPrincipalFloatInterestPercentage
+) {
+	try {
+		// validate the inputs
+		if (
+			!principal ||
+			principal <= 0 ||
+			!interestRate ||
+			interestRate <= 0 ||
+			interestRate > 100 ||
+			!loanTermInMonths ||
+			loanTermInMonths <= 0 ||
+			!investorUpfrontFeePercentage ||
+			investorUpfrontFeePercentage < 0 ||
+			getDayFromDate(disbursementDate) > 28 ||
+			!platformFeePercentage ||
+			platformFeePercentage < 0 ||
+			!juniorTranchFeePercentage ||
+			juniorTranchFeePercentage < 0 ||
+			!JuniorPrincipalFloatInterestPercentage ||
+			JuniorPrincipalFloatInterestPercentage < 0
+		) {
+			return undefined;
+		}
+
+		//calculate the first entry of cashflow
+		const amortisationSchedule = [];
+		const seniorAmortisationSchedule = [];
+		const juniorAmortisationSchedule = [];
+		const cashFlow = [];
+		const dailyInterestRate = interestRate / 100 / 365;
+		let nextEmiDate = addOneMonthToDate(disbursementDate);
+		if (!nextEmiDate || dailyInterestRate < 0) {
+			return undefined;
+		}
+		let lastEmiDate = disbursementDate;
+		const dDate = new Date(disbursementDate);
+		const upfrontInvestorFee =
+			(principal * investorUpfrontFeePercentage) / 100;
+		cashFlow.push({
+			amount: -principal + upfrontInvestorFee,
+			when: dDate,
+		});
+
+		const juniorInvestorCashFlow = [];
+		// junior tranch first entry of cashflow
+		let juniorTotalInvestment = 0;
+		let juniorUpfrontFees = 0;
+		if (juniorTranchFeePercentage && juniorTranchFeePercentage > 0) {
+			juniorTotalInvestment =
+				(principal * juniorTranchFeePercentage) / 100;
+			juniorUpfrontFees =
+				(upfrontInvestorFee * juniorTranchFeePercentage) / 100;
+			juniorInvestorCashFlow.push({
+				amount: -juniorTotalInvestment + juniorUpfrontFees,
+				when: dDate,
+			});
+		}
+		const seniorInvestorCashFlow = [];
+		// seniortranch first entry of cashflow
+		const seniorTotalInvestment = principal - juniorTotalInvestment;
+		seniorInvestorCashFlow.push({
+			amount:
+				-seniorTotalInvestment + upfrontInvestorFee - juniorUpfrontFees,
+			when: dDate,
+		});
+
+		const seniorContributionPercentage =
+			(100 - juniorTranchFeePercentage) / 100;
+		const juniorPricipalPortion =
+			(principal * juniorTranchFeePercentage) / 100;
+		const seniorPricipalPortion = principal * seniorContributionPercentage;
+		// amortisation schedule calculation
+		for (let month = 1; month <= loanTermInMonths; month++) {
+			const noOfDays = calculateDateDifferenceInDays(
+				lastEmiDate,
+				nextEmiDate
+			);
+			const interestPayment = principal * noOfDays * dailyInterestRate;
+			let emiPayment =
+				month === loanTermInMonths
+					? interestPayment + principal
+					: interestPayment;
+
+			amortisationSchedule.push({
+				month: nextEmiDate,
+				days: noOfDays,
+				principal: principal,
+				interest: interestPayment,
+				totalPayment: emiPayment,
+			});
+			cashFlow.push({
+				amount: emiPayment,
+				when: nextEmiDate,
+			});
+
+			// calculate the platform fee
+			const platformFee = (interestPayment * platformFeePercentage) / 100;
+			const juniorFees =
+				(interestPayment * juniorTranchFeePercentage) / 100;
+			// calculate the senior amortisation schedule and cashflow
+			const seniorInterestPortion =
+				interestPayment * seniorContributionPercentage -
+				platformFee * seniorContributionPercentage -
+				juniorFees;
+
+			const seniorPay =
+				month === loanTermInMonths
+					? seniorInterestPortion + seniorPricipalPortion
+					: seniorInterestPortion;
+			seniorAmortisationSchedule.push({
+				platformFee,
+				juniorFees,
+				seniorInterestPortion,
+				seniorPricipalPortion,
+				totalPayment: seniorPay,
+			});
+
+			seniorInvestorCashFlow.push({
+				amount: seniorPay,
+				when: nextEmiDate,
+			});
+
+			// calculate the junior amortisation schedule and cashflow
+			const juniorInterestPortion =
+				(interestPayment * juniorTranchFeePercentage) / 100 -
+				(platformFee * juniorTranchFeePercentage) / 100 +
+				juniorFees;
+
+			const totalJuniorPayout =
+				month === loanTermInMonths
+					? juniorPricipalPortion + juniorInterestPortion
+					: juniorInterestPortion;
+			juniorAmortisationSchedule.push({
+				juniorInterestPortion,
+				juniorPricipalPortion,
+				totalJuniorPayout,
+			});
+			juniorInvestorCashFlow.push({
+				amount: totalJuniorPayout,
+				when: nextEmiDate,
+			});
+			// set next dates
+			lastEmiDate = nextEmiDate;
+			nextEmiDate = addOneMonthToDate(nextEmiDate);
+		}
+
+		return {
+			amortisationSchedule,
+			cashFlow,
+			seniorAmortisationSchedule,
+			seniorInvestorCashFlow,
+			juniorAmortisationSchedule,
+			juniorInvestorCashFlow,
+		};
+	} catch (error) {
+		logger.error(error);
+	}
+	return undefined;
+}
+
+const getBulletLoanAmortisationSchedule = async (req, res) => {
+	try {
+		// validate the body
+		if (!req.body) {
+			logger.error("Invalid request data");
+			return res.status(400).send("Invalid data");
+		}
+
+		const { error } = CashFlowParams.validate(req.body);
+		if (error) {
+			return res.status(400).send(error.details);
+		}
+
+		const {
+			amortisationSchedule,
+			cashFlow,
+			seniorAmortisationSchedule,
+			seniorInvestorCashFlow,
+			juniorAmortisationSchedule,
+			juniorInvestorCashFlow,
+		} = generateBulletLoanCashflows(
 			req.body.loanAmount,
 			req.body.interestRatePercentage,
 			req.body.tenureInMonths,
@@ -448,5 +666,6 @@ module.exports = {
 	getTermLoanInterestComponentOfEMI,
 	getNextRepaymentDate,
 	getTranchwiseYieldPercentage,
-	getAmortisationSchedule,
+	getTermLoanAmortisationSchedule,
+	getBulletLoanAmortisationSchedule,
 };
