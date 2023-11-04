@@ -12,6 +12,7 @@ const CashFlowParams = Joi.object({
 		.greater(0)
 		.max(100),
 	tenureInMonths: Joi.number().required().positive().greater(0),
+	paymentFrequencyInDays: Joi.number().required().positive().greater(0),
 	disbursmentDate: Joi.string().required().regex(dateRegexPattern),
 	investorUpfrontFees: Joi.number().required().min(0).max(100),
 	platformFeesPercentage: Joi.number().required().min(0).max(100),

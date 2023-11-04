@@ -17,8 +17,11 @@ router.get(
 );
 router.get("/getNextRepaymentDate", getNextRepaymentDate);
 router.get("/getTranchwiseYieldPercentage", getTranchwiseYieldPercentage);
-router.get("/getTermLoanAmortisationSchedule", getTermLoanAmortisationSchedule);
-router.get(
+router.post(
+	"/getTermLoanAmortisationSchedule",
+	getTermLoanAmortisationSchedule
+);
+router.post(
 	"/getBulletLoanAmortisationSchedule",
 	getBulletLoanAmortisationSchedule
 );
