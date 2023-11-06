@@ -1,5 +1,6 @@
 const { logger } = require("firebase-functions/v1");
 const { axiosHttpService } = require("../axioscall");
+const uuid = require("uuid");
 
 const createTxOption = (transaction) => {
 	if (!transaction) {
@@ -27,9 +28,10 @@ const createTx = async (transaction) => {
 	if (!transaction) {
 		return;
 	}
+	console.log(transaction);
 	let data = transaction;
 	if (!transaction.Id) {
-		const id = Math.floor(Date.now() / 1000);
+		const id = uuid.v4();
 		data = {
 			Id: id.toString(),
 			...transaction,
