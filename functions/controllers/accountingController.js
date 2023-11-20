@@ -432,11 +432,20 @@ const getTermLoanAmortisationSchedule = async (req, res) => {
 		console.log("Borrower XIRR : ", rate * 100);
 		console.table(seniorAmortisationSchedule);
 		console.table(seniorInvestorCashFlow);
-		console.log("Senior XIRR : ", xirr(seniorInvestorCashFlow) * 100);
+		const seniorXirr = xirr(seniorInvestorCashFlow) * 100;
+		console.log("Senior XIRR : ", seniorXirr);
 		console.table(juniorAmortisationSchedule);
 		console.table(juniorInvestorCashFlow);
-		console.log("Junior XIRR : ", xirr(juniorInvestorCashFlow) * 100);
-		return res.status(200).json({ amortisationSchedule, cashFlow });
+		const juniorXirr = xirr(juniorInvestorCashFlow) * 100;
+		console.log("Junior XIRR : ", juniorXirr);
+		return res.status(200).json({
+			amortisationSchedule,
+			cashFlow,
+			seniorAmortisationSchedule,
+			seniorXirr,
+			juniorAmortisationSchedule,
+			juniorXirr,
+		});
 	} catch (error) {
 		logger.log(error);
 	}
@@ -650,11 +659,22 @@ const getBulletLoanAmortisationSchedule = async (req, res) => {
 		console.log("Borrower XIRR : ", rate * 100);
 		console.table(seniorAmortisationSchedule);
 		console.table(seniorInvestorCashFlow);
-		console.log("Senior XIRR : ", xirr(seniorInvestorCashFlow) * 100);
+		const seniorXirr = xirr(seniorInvestorCashFlow) * 100;
+		console.log("Senior XIRR : ", seniorXirr);
 		console.table(juniorAmortisationSchedule);
 		console.table(juniorInvestorCashFlow);
-		console.log("Junior XIRR : ", xirr(juniorInvestorCashFlow) * 100);
-		return res.status(200).json({ amortisationSchedule, cashFlow });
+		const juniorXirr = xirr(juniorInvestorCashFlow) * 100;
+		console.log("Junior XIRR : ", juniorXirr);
+		return res
+			.status(200)
+			.json({
+				amortisationSchedule,
+				cashFlow,
+				seniorAmortisationSchedule,
+				seniorXirr,
+				juniorAmortisationSchedule,
+				juniorXirr,
+			});
 	} catch (error) {
 		logger.log(error);
 	}

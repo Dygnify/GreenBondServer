@@ -14,6 +14,7 @@ const Transaction = Joi.object({
 	subscriberId: Joi.string(),
 	principalPortion: Joi.number(),
 	txHash: Joi.string().required(),
+	isSenior: Joi.bool(),
 });
 
 module.exports = Transaction;

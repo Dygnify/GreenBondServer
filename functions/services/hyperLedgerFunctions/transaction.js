@@ -70,7 +70,7 @@ const getTxOption = (field, value) => {
 	}
 	return {
 		method: "get",
-		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset/all?assetType=Transaction&actAs=${field}:${value}`,
+		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset/all?assetType=Transaction&pageSize=500&actAs=${field}:${value}`,
 		headers: {
 			"X-API-KEY": process.env.SPYDRA_API_KEY,
 		},
