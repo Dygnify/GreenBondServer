@@ -547,7 +547,7 @@ function generateBulletLoanCashflows(
 			amortisationSchedule.push({
 				month: nextEmiDate,
 				days: noOfDays,
-				principal: principal,
+				principal: month === loanTermInMonths ? principal : 0,
 				interest: interestPayment,
 				totalPayment: emiPayment,
 			});
@@ -574,7 +574,8 @@ function generateBulletLoanCashflows(
 				platformFee,
 				juniorFees,
 				seniorInterestPortion,
-				seniorPricipalPortion,
+				seniorPricipalPortion:
+					month === loanTermInMonths ? seniorPricipalPortion : 0,
 				totalPayment: seniorPay,
 			});
 
@@ -595,7 +596,8 @@ function generateBulletLoanCashflows(
 					: juniorInterestPortion;
 			juniorAmortisationSchedule.push({
 				juniorInterestPortion,
-				juniorPricipalPortion,
+				juniorPricipalPortion:
+					month === loanTermInMonths ? juniorPricipalPortion : 0,
 				totalJuniorPayout,
 			});
 			juniorInvestorCashFlow.push({
@@ -665,16 +667,14 @@ const getBulletLoanAmortisationSchedule = async (req, res) => {
 		console.table(juniorInvestorCashFlow);
 		const juniorXirr = xirr(juniorInvestorCashFlow) * 100;
 		console.log("Junior XIRR : ", juniorXirr);
-		return res
-			.status(200)
-			.json({
-				amortisationSchedule,
-				cashFlow,
-				seniorAmortisationSchedule,
-				seniorXirr,
-				juniorAmortisationSchedule,
-				juniorXirr,
-			});
+		return res.status(200).json({
+			amortisationSchedule,
+			cashFlow,
+			seniorAmortisationSchedule,
+			seniorXirr,
+			juniorAmortisationSchedule,
+			juniorXirr,
+		});
 	} catch (error) {
 		logger.log(error);
 	}
