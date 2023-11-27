@@ -18,6 +18,10 @@ const GreenBond = Joi.object({
 	payment_frequency: Joi.number().required(),
 	status: Joi.number().required(),
 	createdOn: Joi.number().required(),
+	isRecurring: Joi.bool(),
+	isPercentageOfCoupon: Joi.bool(),
+	percentageOfCoupon: Joi.number(),
+	fixedAmount: Joi.number(),
 });
 
 module.exports = GreenBond;
