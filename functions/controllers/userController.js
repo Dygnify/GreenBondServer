@@ -3,6 +3,7 @@ const {
 	createNewUser,
 	getUserWithEmail,
 	getUser,
+	getAllUser,
 } = require("../services/hyperLedgerFunctions/userAsset");
 const User = require("../models/user");
 
@@ -33,7 +34,7 @@ const createUser = async (req, res) => {
 	res.status(400).send("Invalid request");
 };
 
-// Get list of posts
+// Get list of users
 const getUsers = async (req, res) => {
 	try {
 		if (!req.body) {
@@ -56,4 +57,19 @@ const getUsers = async (req, res) => {
 	res.status(400).json("Invalid request");
 };
 
-module.exports = { createUser, getUsers };
+// Get list of posts
+const getAllUsers = async (req, res) => {
+	try {
+		let result;
+		result = await getAllUser();
+
+		if (result) {
+			return res.status(200).json(result);
+		}
+	} catch (error) {
+		logger.error(error);
+	}
+	res.status(400).json("Invalid request");
+};
+
+module.exports = { createUser, getUsers, getAllUsers };
