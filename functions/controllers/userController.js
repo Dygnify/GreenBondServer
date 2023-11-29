@@ -6,6 +6,7 @@ const {
 	getAllUser,
 } = require("../services/hyperLedgerFunctions/userAsset");
 const User = require("../models/user");
+const { getFirebaseAdminAuth } = require("../firebaseInit");
 
 // Create post
 const createUser = async (req, res) => {
@@ -72,4 +73,55 @@ const getAllUsers = async (req, res) => {
 	res.status(400).json("Invalid request");
 };
 
-module.exports = { createUser, getUsers, getAllUsers };
+const getUserAccountStatus = async (req, res) => {
+	try {
+		if (!req.body.email) {
+			return res.status(400).json("Invalid request");
+		}
+		const auth = getFirebaseAdminAuth();
+		const userRecord = await auth.getUserByEmail(req.body.email);
+		return res.json({
+			disabled: userRecord.disabled,
+		});
+	} catch (error) {
+		logger.error(error);
+	}
+	res.status(400).json("Invalid request");
+};
+
+const enableDisableUserAccount = async (req, res) => {
+	try {
+		if (!req.body.email) {
+			return res.status(400).json("Invalid request");
+		}
+		const auth = getFirebaseAdminAuth();
+		const userRecord = await auth.getUserByEmail(req.body.email);
+		const updatedrecord = await auth.updateUser(userRecord.uid, {
+			disabled: !userRecord.disabled,
+		});
+		if (updatedrecord.disabled !== userRecord.disabled) {
+			return res.json({
+				success: true,
+				message: `User Account ${
+					updatedrecord.disabled ? "Disabled" : "Enabled"
+				}`,
+			});
+		} else {
+			return res.json({
+				success: false,
+				message: "Failed to change account status!",
+			});
+		}
+	} catch (error) {
+		logger.error(error);
+	}
+	res.status(400).json("Invalid request");
+};
+
+module.exports = {
+	createUser,
+	getUsers,
+	getAllUsers,
+	getUserAccountStatus,
+	enableDisableUserAccount,
+};

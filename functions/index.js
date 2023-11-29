@@ -2,7 +2,7 @@ const express = require("express");
 const functions = require("firebase-functions");
 const { onRequest } = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
-const admin = require("firebase-admin");
+const { initializeFirebaseApp } = require("./firebaseInit");
 const userRoutes = require("./routes/userRoutes");
 const bondRoutes = require("./routes/bondRoutes");
 const transactionRoutes = require("./routes/transactionRoutes");
@@ -10,7 +10,9 @@ const tokenizedBondRoutes = require("./routes/tokenizedBondRoutes");
 const accountingRoutes = require("./routes/accountingRoutes");
 const app = express();
 const cors = require("cors");
-admin.initializeApp();
+
+initializeFirebaseApp();
+
 app.use(express.json());
 app.use(
 	cors({
