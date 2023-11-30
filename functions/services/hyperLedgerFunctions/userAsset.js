@@ -151,4 +151,52 @@ const getAllUser = async () => {
 	}
 };
 
-module.exports = { createNewUser, getUserWithEmail, getUser, getAllUser };
+const deleteUserOption = (email, role, Id) => {
+	if (!email || !role) {
+		return;
+	}
+
+	let data = JSON.stringify({
+		assetType: "User",
+		id: [Id],
+	});
+
+	return {
+		method: "delete",
+		maxBodyLength: Infinity,
+		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset`,
+		headers: {
+			accept: "application/json",
+			"X-API-KEY": process.env.SPYDRA_API_KEY,
+			"Content-Type": "application/json",
+		},
+		data: data,
+	};
+};
+
+const deleteUser = async (email, role) => {
+	try {
+		if (!email || !role) {
+			return;
+		}
+		let userResult = await getUserWithEmail(email, role);
+		result = await axiosHttpService(
+			deleteUserOption(email, role, userResult[0].Id)
+		);
+		if (result.code === 200) {
+			return { success: true };
+		}
+		return { success: false };
+	} catch (error) {
+		logger.error(error);
+		return { success: false };
+	}
+};
+
+module.exports = {
+	createNewUser,
+	getUserWithEmail,
+	getUser,
+	getAllUser,
+	deleteUser,
+};

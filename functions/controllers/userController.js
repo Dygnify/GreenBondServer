@@ -4,6 +4,7 @@ const {
 	getUserWithEmail,
 	getUser,
 	getAllUser,
+	deleteUser,
 } = require("../services/hyperLedgerFunctions/userAsset");
 const User = require("../models/user");
 const { getFirebaseAdminAuth } = require("../firebaseInit");
@@ -81,6 +82,7 @@ const getUserAccountStatus = async (req, res) => {
 		const auth = getFirebaseAdminAuth();
 		const userRecord = await auth.getUserByEmail(req.body.email);
 		return res.json({
+			success: true,
 			disabled: userRecord.disabled,
 		});
 	} catch (error) {
@@ -105,11 +107,41 @@ const enableDisableUserAccount = async (req, res) => {
 				message: `User Account ${
 					updatedrecord.disabled ? "Disabled" : "Enabled"
 				}`,
+				disabled: updatedrecord.disabled,
 			});
 		} else {
 			return res.json({
 				success: false,
 				message: "Failed to change account status!",
+			});
+		}
+	} catch (error) {
+		logger.error(error);
+	}
+	res.status(400).json("Invalid request");
+};
+
+const deleteUserAccount = async (req, res) => {
+	try {
+		if (!req.body.email || !req.body.role) {
+			return res.status(400).json("Invalid request");
+		}
+		const result = await deleteUser(req.body.email, req.body.role);
+		if (result.success) {
+			const auth = getFirebaseAdminAuth();
+			// Get user record from firebase
+			const userRecord = await auth.getUserByEmail(req.body.email);
+			// Delete the user
+			console.log("userRecord", userRecord);
+			await auth.deleteUser(userRecord.uid);
+			return res.json({
+				success: true,
+				message: "Successfully deleted User",
+			});
+		} else {
+			res.status(400).json({
+				success: false,
+				message: "Unable to delete User account",
 			});
 		}
 	} catch (error) {
@@ -124,4 +156,5 @@ module.exports = {
 	getAllUsers,
 	getUserAccountStatus,
 	enableDisableUserAccount,
+	deleteUserAccount,
 };
