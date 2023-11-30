@@ -152,7 +152,7 @@ const getAllUser = async () => {
 };
 
 const deleteUserOption = (email, role, Id) => {
-	if (!email || !role) {
+	if (!email || role === undefined) {
 		return;
 	}
 
@@ -176,7 +176,7 @@ const deleteUserOption = (email, role, Id) => {
 
 const deleteUser = async (email, role) => {
 	try {
-		if (!email || !role) {
+		if (!email || role === undefined) {
 			return;
 		}
 		let userResult = await getUserWithEmail(email, role);

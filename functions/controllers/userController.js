@@ -123,7 +123,7 @@ const enableDisableUserAccount = async (req, res) => {
 
 const deleteUserAccount = async (req, res) => {
 	try {
-		if (!req.body.email || !req.body.role) {
+		if (!req.body.email || req.body.role === undefined) {
 			return res.status(400).json("Invalid request");
 		}
 		const result = await deleteUser(req.body.email, req.body.role);
