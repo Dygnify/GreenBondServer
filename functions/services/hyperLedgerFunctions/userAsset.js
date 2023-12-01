@@ -129,19 +129,25 @@ const getUser = async (Id) => {
 	}
 };
 
-const getAllUserOption = () => {
+const getAllUserOption = (pageSize, bookmark) => {
 	return {
 		method: "get",
-		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset/all?assetType=User&pageSize=500`,
+		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${
+			process.env.SPYDRA_APP_ID
+		}/asset/all?assetType=User&pageSize=${pageSize}${
+			bookmark ? `&bookmark=${bookmark}` : ""
+		}`,
 		headers: {
 			"X-API-KEY": process.env.SPYDRA_API_KEY,
 		},
 	};
 };
 
-const getAllUser = async () => {
+const getAllUser = async (pageSize = 500, bookmark) => {
 	try {
-		let result = await axiosHttpService(getAllUserOption());
+		let result = await axiosHttpService(
+			getAllUserOption(pageSize, bookmark)
+		);
 		if (result.code === 200) {
 			return result.res;
 		}

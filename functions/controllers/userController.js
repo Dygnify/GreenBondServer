@@ -63,7 +63,7 @@ const getUsers = async (req, res) => {
 const getAllUsers = async (req, res) => {
 	try {
 		let result;
-		result = await getAllUser();
+		result = await getAllUser(req.body?.pageSize, req.body?.bookmark);
 
 		if (result) {
 			return res.status(200).json(result);
