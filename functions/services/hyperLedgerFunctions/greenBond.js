@@ -89,19 +89,25 @@ const getGreenBond = async ({ field, value }) => {
 	}
 };
 
-const getAllGreenBondsOption = () => {
+const getAllGreenBondsOption = (pageSize, bookmark) => {
 	return {
 		method: "get",
-		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset/all?assetType=GreenBond`,
+		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${
+			process.env.SPYDRA_APP_ID
+		}/asset/all?assetType=GreenBond&pageSize=${pageSize}${
+			bookmark ? `&bookmark=${bookmark}` : ""
+		}`,
 		headers: {
 			"X-API-KEY": process.env.SPYDRA_API_KEY,
 		},
 	};
 };
 
-const getAllGreenBonds = async () => {
+const getAllGreenBonds = async (pageSize = 500, bookmark) => {
 	try {
-		let result = await axiosHttpService(getAllGreenBondsOption());
+		let result = await axiosHttpService(
+			getAllGreenBondsOption(pageSize, bookmark)
+		);
 		if (result.code === 200) {
 			return result.res;
 		}

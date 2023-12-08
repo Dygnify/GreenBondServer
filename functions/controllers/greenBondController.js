@@ -54,7 +54,10 @@ const getBonds = async (req, res) => {
 // Get list of all bonds
 const getAllBonds = async (req, res) => {
 	try {
-		var result = await getAllGreenBonds();
+		var result = await getAllGreenBonds(
+			req.body?.pageSize,
+			req.body?.bookmark
+		);
 		if (result) {
 			return res.status(200).json(result);
 		}
