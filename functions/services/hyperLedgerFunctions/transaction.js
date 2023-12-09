@@ -93,4 +93,30 @@ const getTx = async (field, value) => {
 	}
 };
 
-module.exports = { createTx, getTx };
+const getAllTxOption = (pageSize, bookmark) => {
+	return {
+		method: "get",
+		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${
+			process.env.SPYDRA_APP_ID
+		}/asset/all?assetType=Transaction&pageSize=${pageSize}${
+			bookmark ? `&bookmark=${bookmark}` : ""
+		}`,
+		headers: {
+			"X-API-KEY": process.env.SPYDRA_API_KEY,
+		},
+	};
+};
+
+const getAllTx = async (pageSize = 500, bookmark) => {
+	try {
+		let result = await axiosHttpService(getAllTxOption(pageSize, bookmark));
+		if (result.code === 200) {
+			return result.res;
+		}
+		return;
+	} catch (error) {
+		logger.error(error);
+	}
+};
+
+module.exports = { createTx, getTx, getAllTx };
