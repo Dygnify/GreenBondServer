@@ -25,4 +25,4 @@ app.use("/transaction", transactionRoutes);
 app.use("/tokenizedBond", tokenizedBondRoutes);
 app.use("/accounting", accountingRoutes);
 
-exports.api = functions.https.onRequest(app);
+exports.api = functions.region("asia-south1").https.onRequest(app);
