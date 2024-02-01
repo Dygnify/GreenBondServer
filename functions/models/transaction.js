@@ -16,6 +16,10 @@ const Transaction = Joi.object({
 	txHash: Joi.string().required(),
 	isSenior: Joi.bool(),
 	repaymentNumber: Joi.number(),
+	benificiaryName: Joi.string(),
+	benificiaryBank: Joi.string(),
+	benificiaryBankAccNo: Joi.string(),
+	utrNo: Joi.string(),
 });
 
 module.exports = Transaction;
