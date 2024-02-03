@@ -20,6 +20,7 @@ const Transaction = Joi.object({
 	benificiaryBank: Joi.string(),
 	benificiaryBankAccNo: Joi.string(),
 	utrNo: Joi.string(),
+	transactionDate: Joi.string(),
 });
 
 module.exports = Transaction;
