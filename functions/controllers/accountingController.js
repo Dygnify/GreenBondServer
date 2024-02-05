@@ -234,7 +234,7 @@ function generateTermLoanCashflows(
 			getDayFromDate(disbursementDate) > 28 ||
 			!platformFeePercentage ||
 			platformFeePercentage < 0 ||
-			!juniorTranchFeePercentage ||
+			juniorTranchFeePercentage == undefined ||
 			juniorTranchFeePercentage < 0 ||
 			!JuniorPrincipalFloatInterestPercentage ||
 			JuniorPrincipalFloatInterestPercentage < 0
@@ -425,19 +425,38 @@ const getTermLoanAmortisationSchedule = async (req, res) => {
 			req.body.JuniorPrincipalFloatPercentage
 		);
 
+		var rate = xirr(cashFlow);
+		var seniorXirr;
+		var juniorXirr;
+		if (req.body.JuniorContributionPercentage != undefined) {
+			switch (req.body.JuniorContributionPercentage) {
+				case 0:
+					seniorXirr = xirr(seniorInvestorCashFlow) * 100;
+					juniorXirr = 0;
+					break;
+				case 100:
+					seniorXirr = 0;
+					juniorXirr = xirr(juniorInvestorCashFlow) * 100;
+					break;
+				default:
+					seniorXirr = xirr(seniorInvestorCashFlow) * 100;
+					juniorXirr = xirr(juniorInvestorCashFlow) * 100;
+					break;
+			}
+		}
+
+		// logs
 		console.log("Loan Cashflows:");
 		console.table(amortisationSchedule);
 		console.table(cashFlow);
-		var rate = xirr(cashFlow);
 		console.log("Borrower XIRR : ", rate * 100);
 		console.table(seniorAmortisationSchedule);
 		console.table(seniorInvestorCashFlow);
-		const seniorXirr = xirr(seniorInvestorCashFlow) * 100;
 		console.log("Senior XIRR : ", seniorXirr);
 		console.table(juniorAmortisationSchedule);
 		console.table(juniorInvestorCashFlow);
-		const juniorXirr = xirr(juniorInvestorCashFlow) * 100;
 		console.log("Junior XIRR : ", juniorXirr);
+
 		return res.status(200).json({
 			amortisationSchedule,
 			cashFlow,
@@ -477,7 +496,7 @@ function generateBulletLoanCashflows(
 			getDayFromDate(disbursementDate) > 28 ||
 			!platformFeePercentage ||
 			platformFeePercentage < 0 ||
-			!juniorTranchFeePercentage ||
+			juniorTranchFeePercentage == undefined ||
 			juniorTranchFeePercentage < 0 ||
 			!JuniorPrincipalFloatInterestPercentage ||
 			JuniorPrincipalFloatInterestPercentage < 0
@@ -654,19 +673,38 @@ const getBulletLoanAmortisationSchedule = async (req, res) => {
 			req.body.JuniorPrincipalFloatPercentage
 		);
 
+		var rate = xirr(cashFlow);
+		var seniorXirr;
+		var juniorXirr;
+		if (req.body.JuniorContributionPercentage != undefined) {
+			switch (req.body.JuniorContributionPercentage) {
+				case 0:
+					seniorXirr = xirr(seniorInvestorCashFlow) * 100;
+					juniorXirr = 0;
+					break;
+				case 100:
+					seniorXirr = 0;
+					juniorXirr = xirr(juniorInvestorCashFlow) * 100;
+					break;
+				default:
+					seniorXirr = xirr(seniorInvestorCashFlow) * 100;
+					juniorXirr = xirr(juniorInvestorCashFlow) * 100;
+					break;
+			}
+		}
+
+		// logs
 		console.log("Loan Cashflows:");
 		console.table(amortisationSchedule);
 		console.table(cashFlow);
-		var rate = xirr(cashFlow);
 		console.log("Borrower XIRR : ", rate * 100);
 		console.table(seniorAmortisationSchedule);
 		console.table(seniorInvestorCashFlow);
-		const seniorXirr = xirr(seniorInvestorCashFlow) * 100;
 		console.log("Senior XIRR : ", seniorXirr);
 		console.table(juniorAmortisationSchedule);
 		console.table(juniorInvestorCashFlow);
-		const juniorXirr = xirr(juniorInvestorCashFlow) * 100;
 		console.log("Junior XIRR : ", juniorXirr);
+
 		return res.status(200).json({
 			amortisationSchedule,
 			cashFlow,
