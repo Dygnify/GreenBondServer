@@ -8,6 +8,7 @@ const bondRoutes = require("./routes/bondRoutes");
 const transactionRoutes = require("./routes/transactionRoutes");
 const tokenizedBondRoutes = require("./routes/tokenizedBondRoutes");
 const accountingRoutes = require("./routes/accountingRoutes");
+const nftRoutes = require("./routes/nftRoutes");
 const app = express();
 const cors = require("cors");
 
@@ -24,5 +25,6 @@ app.use("/bond", bondRoutes);
 app.use("/transaction", transactionRoutes);
 app.use("/tokenizedBond", tokenizedBondRoutes);
 app.use("/accounting", accountingRoutes);
+app.use("/nft", nftRoutes);
 
 exports.api = functions.region("asia-south1").https.onRequest(app);
