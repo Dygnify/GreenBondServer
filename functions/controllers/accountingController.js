@@ -229,14 +229,14 @@ function generateTermLoanCashflows(
 			interestRate > 100 ||
 			!loanTermInMonths ||
 			loanTermInMonths <= 0 ||
-			!investorUpfrontFeePercentage ||
+			investorUpfrontFeePercentage == undefined ||
 			investorUpfrontFeePercentage < 0 ||
 			getDayFromDate(disbursementDate) > 28 ||
-			!platformFeePercentage ||
+			platformFeePercentage == undefined ||
 			platformFeePercentage < 0 ||
 			juniorTranchFeePercentage == undefined ||
 			juniorTranchFeePercentage < 0 ||
-			!JuniorPrincipalFloatInterestPercentage ||
+			JuniorPrincipalFloatInterestPercentage == undefined ||
 			JuniorPrincipalFloatInterestPercentage < 0
 		) {
 			return undefined;
@@ -491,14 +491,14 @@ function generateBulletLoanCashflows(
 			interestRate > 100 ||
 			!loanTermInMonths ||
 			loanTermInMonths <= 0 ||
-			!investorUpfrontFeePercentage ||
+			investorUpfrontFeePercentage == undefined ||
 			investorUpfrontFeePercentage < 0 ||
 			getDayFromDate(disbursementDate) > 28 ||
-			!platformFeePercentage ||
+			platformFeePercentage == undefined ||
 			platformFeePercentage < 0 ||
 			juniorTranchFeePercentage == undefined ||
 			juniorTranchFeePercentage < 0 ||
-			!JuniorPrincipalFloatInterestPercentage ||
+			JuniorPrincipalFloatInterestPercentage == undefined ||
 			JuniorPrincipalFloatInterestPercentage < 0
 		) {
 			return undefined;
