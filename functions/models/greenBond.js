@@ -27,7 +27,7 @@ const GreenBond = Joi.object({
 	juniorTranchFloatInterestPercentage: Joi.number().min(0).max(100),
 	ghgEmissionReduction: Joi.string().required(),
 	sopDocHash: Joi.string().required(),
-	issueNoteDoc: Joi.string().required(),
+	issueNoteDoc: Joi.string(),
 });
 
 module.exports = GreenBond;
