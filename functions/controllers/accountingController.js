@@ -115,6 +115,64 @@ const getNextRepaymentDate = async (req, res) => {
 	return res.status(400).json("Invalid request");
 };
 
+const getRepaymentAmount = async (req, res) => {
+	try {
+		// validate the body
+		if (
+			!req.body ||
+			!req.body.loanStartDate ||
+			!req.body.repaymentDueDate ||
+			!req.body.delayedInterest ||
+			req.body.delayedInterest < 0 ||
+			!req.body.outstandingPrincipal ||
+			req.body.outstandingPrincipal <= 0 ||
+			!req.body.loanInterest ||
+			req.body.loanInterest <= 0 ||
+			!req.body.emiAmount ||
+			req.body.emiAmount <= 0
+		) {
+			logger.error("Invalid request data");
+			return res.status(400).send("Invalid data");
+		}
+
+		const currentDate = Date.now();
+		var daysFromDueDate = calculateDateDifferenceInDays(
+			req.body.repaymentDueDate,
+			currentDate
+		);
+		let finalEmi;
+		if (daysFromDueDate == 0) {
+			finalEmi = req.body.emiAmount;
+		} else if (isDateGreaterThan(currentDate, req.body.repaymentDueDate)) {
+			finalEmi =
+				req.body.emiAmount +
+				(req.body.emiAmount *
+					daysFromDueDate *
+					req.body.delayedInterest) /
+					36500;
+		} else {
+			// prepayment only considers right now only 1 installment prepayment
+			// get the days from last emi payment
+			var daysFromLoanStartDate = calculateDateDifferenceInDays(
+				req.body.loanStartDate,
+				currentDate
+			);
+
+			finalEmi =
+				req.body.outstandingPrincipal +
+				(req.body.outstandingPrincipal *
+					daysFromLoanStartDate *
+					req.body.loanInterest) /
+					36500;
+		}
+
+		return res.status(200).json(finalEmi);
+	} catch (error) {
+		logger.error(error);
+	}
+	return res.status(400).json("Invalid request");
+};
+
 const getTranchwiseYieldPercentage = async (req, res) => {
 	try {
 		// validate the body
@@ -726,4 +784,5 @@ module.exports = {
 	getTranchwiseYieldPercentage,
 	getTermLoanAmortisationSchedule,
 	getBulletLoanAmortisationSchedule,
+	getRepaymentAmount,
 };

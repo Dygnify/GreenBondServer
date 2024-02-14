@@ -6,6 +6,7 @@ const {
 	getTranchwiseYieldPercentage,
 	getTermLoanAmortisationSchedule,
 	getBulletLoanAmortisationSchedule,
+	getRepaymentAmount,
 } = require("../controllers/accountingController");
 
 const router = express.Router();
@@ -25,5 +26,7 @@ router.post(
 	"/getBulletLoanAmortisationSchedule",
 	getBulletLoanAmortisationSchedule
 );
+
+router.post("/getRepaymentAmount", getRepaymentAmount);
 
 module.exports = router;
