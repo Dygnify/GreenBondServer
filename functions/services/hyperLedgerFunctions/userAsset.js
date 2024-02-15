@@ -1,5 +1,15 @@
 const { logger } = require("firebase-functions/v1");
 const { axiosHttpService } = require("../axioscall");
+const { userRegistration } = require("../emailHelper");
+
+const Role = [
+	"Subscriber",
+	"Issuer",
+	"Custodian",
+	"Regulator",
+	"Admin",
+	"Diligence",
+];
 
 const createUserOption = (user) => {
 	if (!user) {
@@ -45,6 +55,14 @@ const createNewUser = async (user) => {
 	}
 	let result = await axiosHttpService(createUserOption(data));
 	if (result.code === 201) {
+		if (!user.Id) {
+			await userRegistration(
+				user.email,
+				"12345678",
+				Role[user.role],
+				"https://green-bond-app.vercel.app"
+			);
+		}
 		return { Id: data.Id, ...result.res };
 	}
 	return result;
