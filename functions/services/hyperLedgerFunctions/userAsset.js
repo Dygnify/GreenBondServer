@@ -1,6 +1,10 @@
 const { logger } = require("firebase-functions/v1");
 const { axiosHttpService } = require("../axioscall");
-const { userRegistration, createProfile } = require("../emailHelper");
+const {
+	userRegistration,
+	createProfile,
+	completeKyc,
+} = require("../emailHelper");
 
 const Role = [
 	"Subscriber",
@@ -68,6 +72,8 @@ const createNewUser = async (user) => {
 			);
 		} else if (action === "ProfileCreation") {
 			await createProfile(user.email, Role[user.role]);
+		} else if (action === "kyc") {
+			await completeKyc(user.email, Role[user.role]);
 		}
 		return { Id: data.Id, ...result.res };
 	}

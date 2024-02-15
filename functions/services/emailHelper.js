@@ -370,5 +370,25 @@ const createProfile = async (email, role) => {
 
 	console.log("Message sent: " + info.messageId);
 };
+const completeKyc = async (email, role) => {
+	const mainBody = `<!-- START MAIN CONTENT AREA -->
+    <tr>
+      <td class="wrapper">
+      <p>Dear ${email},</p>
+      <p>Your KYC has been successfully completed. You may now use the platform as per your role as  ${role} for Project iGreen.
+      <p>Thanks,<br/>Team Project iGreen</p>  
+      </td>
+    </tr>`;
 
-module.exports = { userRegistration, createProfile };
+	const info = await transporter.sendMail({
+		from: "Dygnify <dygnify@gmail.com>",
+		to: email,
+		subject: "Project iGreen - KYC completed",
+		html: startEmailWrapper + mainBody + endEmailWrapper,
+		cc: ["admin@gmail.com"],
+	});
+
+	console.log("Message sent: " + info.messageId);
+};
+
+module.exports = { userRegistration, createProfile, completeKyc };
