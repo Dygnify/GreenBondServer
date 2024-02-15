@@ -1,6 +1,6 @@
 const { logger } = require("firebase-functions/v1");
 const { axiosHttpService } = require("../axioscall");
-const { userRegistration } = require("../emailHelper");
+const { userRegistration, createProfile } = require("../emailHelper");
 
 const Role = [
 	"Subscriber",
@@ -38,11 +38,15 @@ const createNewUser = async (user) => {
 		return;
 	}
 	let data = user;
+	let action = data.action;
+	if (action) {
+		delete data.action;
+	}
 	if (!user.Id) {
 		const id = Math.floor(Date.now() / 1000);
 		data = {
 			Id: id.toString(),
-			...user,
+			...data,
 			ledgerMetadata: {
 				owners: [
 					{
@@ -62,6 +66,8 @@ const createNewUser = async (user) => {
 				Role[user.role],
 				"https://green-bond-app.vercel.app"
 			);
+		} else if (action === "ProfileCreation") {
+			await createProfile(user.email, Role[user.role]);
 		}
 		return { Id: data.Id, ...result.res };
 	}
@@ -79,7 +85,8 @@ const getUserWithEmailOption = (email, role) => {
               Id,
               email,
               profile,
-              role, 
+              role,
+			  kycStatus, 
               ledgerMetadata{
                 owners
               }

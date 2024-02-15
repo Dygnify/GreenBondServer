@@ -350,5 +350,25 @@ const userRegistration = async (email, password, role, link) => {
 
 	console.log("Message sent: " + info.messageId);
 };
+const createProfile = async (email, role) => {
+	const mainBody = `<!-- START MAIN CONTENT AREA -->
+    <tr>
+      <td class="wrapper">
+      <p>Dear ${email},</p>
+      <p>You have successfully created your profile for your role as ${role} for Project iGreen.
+      <p>Thanks,<br/>Team Project iGreen</p>  
+      </td>
+    </tr>`;
 
-module.exports = { userRegistration };
+	const info = await transporter.sendMail({
+		from: "Dygnify <dygnify@gmail.com>",
+		to: email,
+		subject: "Project iGreen - User profile created",
+		html: startEmailWrapper + mainBody + endEmailWrapper,
+		cc: ["admin@gmail.com"],
+	});
+
+	console.log("Message sent: " + info.messageId);
+};
+
+module.exports = { userRegistration, createProfile };
