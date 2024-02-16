@@ -434,10 +434,34 @@ const adminApproval = async (email, approved) => {
 	console.log("Message sent: " + info.messageId);
 };
 
+const diligenceApproval = async (email, approved) => {
+	const mainBody = `<!-- START MAIN CONTENT AREA -->
+    <tr>
+      <td class="wrapper">
+      <p>Dear ${email},</p>
+      <p>Your Green Bond request has been ${
+			approved ? "successfully approved" : "rejected"
+		}.</p>
+      <p>Thanks,<br/>Team Project iGreen</p>  
+      </td>
+    </tr>`;
+
+	const info = await transporter.sendMail({
+		from: "Dygnify <dygnify@gmail.com>",
+		to: email,
+		subject: "Project iGreen - Bond proposal Diligence approval",
+		html: startEmailWrapper + mainBody + endEmailWrapper,
+		cc: ["admin@gmail.com"],
+	});
+
+	console.log("Message sent: " + info.messageId);
+};
+
 module.exports = {
 	userRegistration,
 	createProfile,
 	completeKyc,
 	borrowRequestCreation,
 	adminApproval,
+	diligenceApproval,
 };

@@ -1,6 +1,10 @@
 const { logger } = require("firebase-functions/v1");
 const { axiosHttpService } = require("../axioscall");
-const { borrowRequestCreation, adminApproval } = require("../emailHelper");
+const {
+	borrowRequestCreation,
+	adminApproval,
+	diligenceApproval,
+} = require("../emailHelper");
 const { getUser } = require("./userAsset");
 
 const createGreenBondOption = (bond) => {
@@ -58,6 +62,14 @@ const createGreenBond = async (bond) => {
 			await adminApproval(
 				res.data.email,
 				action === "Admin Approved" ? true : false
+			);
+		} else if (
+			action === "Diligence Approved" ||
+			action === "Diligence Rejected"
+		) {
+			await diligenceApproval(
+				res.data.email,
+				action === "Diligence Approved" ? true : false
 			);
 		}
 		return { Id: data.Id, ...result.res };
