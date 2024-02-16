@@ -4,8 +4,9 @@ const {
 	borrowRequestCreation,
 	adminApproval,
 	diligenceApproval,
+	bondAvailableForSubscription,
 } = require("../emailHelper");
-const { getUser } = require("./userAsset");
+const { getUser, getAllUser } = require("./userAsset");
 
 const createGreenBondOption = (bond) => {
 	if (!bond) {
@@ -71,6 +72,19 @@ const createGreenBond = async (bond) => {
 				res.data.email,
 				action === "Diligence Approved" ? true : false
 			);
+			// Send Bond is available for subscription
+			if (action === "Diligence Approved") {
+				const res = await getAllUser();
+				const subscribers = res.records.filter(
+					(user) => user.data.role === 0
+				);
+				subscribers.forEach(async (sub) => {
+					await bondAvailableForSubscription(
+						sub.data.email,
+						bond.loan_name
+					);
+				});
+			}
 		}
 		return { Id: data.Id, ...result.res };
 	}

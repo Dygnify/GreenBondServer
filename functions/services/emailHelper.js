@@ -456,6 +456,27 @@ const diligenceApproval = async (email, approved) => {
 
 	console.log("Message sent: " + info.messageId);
 };
+const bondAvailableForSubscription = async (email, bondName) => {
+	const mainBody = `<!-- START MAIN CONTENT AREA -->
+    <tr>
+      <td class="wrapper">
+      <p>Dear ${email},</p>
+      <p>The Green bond ${bondName} is available for subscription.<br/>Please login to access details and subscribe..
+      </p>
+      <p>Thanks,<br/>Team Project iGreen</p>  
+      </td>
+    </tr>`;
+
+	const info = await transporter.sendMail({
+		from: "Dygnify <dygnify@gmail.com>",
+		to: email,
+		subject: "Project iGreen - Green Bond available for subscription",
+		html: startEmailWrapper + mainBody + endEmailWrapper,
+		cc: ["admin@gmail.com"],
+	});
+
+	console.log("Message sent: " + info.messageId);
+};
 
 module.exports = {
 	userRegistration,
@@ -464,4 +485,5 @@ module.exports = {
 	borrowRequestCreation,
 	adminApproval,
 	diligenceApproval,
+	bondAvailableForSubscription,
 };
