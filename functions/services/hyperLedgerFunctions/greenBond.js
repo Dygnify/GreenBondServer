@@ -1,5 +1,7 @@
 const { logger } = require("firebase-functions/v1");
 const { axiosHttpService } = require("../axioscall");
+const { borrowRequestCreation } = require("../emailHelper");
+const { getUser } = require("./userAsset");
 
 const createGreenBondOption = (bond) => {
 	if (!bond) {
@@ -45,6 +47,10 @@ const createGreenBond = async (bond) => {
 	}
 	let result = await axiosHttpService(createGreenBondOption(data));
 	if (result.code === 201) {
+		if (!bond.Id) {
+			const res = await getUser(bond.borrowerId.toString());
+			await borrowRequestCreation(res.data.email);
+		}
 		return { Id: data.Id, ...result.res };
 	}
 	return result;

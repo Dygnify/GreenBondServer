@@ -355,7 +355,7 @@ const createProfile = async (email, role) => {
     <tr>
       <td class="wrapper">
       <p>Dear ${email},</p>
-      <p>You have successfully created your profile for your role as ${role} for Project iGreen.
+      <p>You have successfully created your profile for your role as ${role} for Project iGreen.</p>
       <p>Thanks,<br/>Team Project iGreen</p>  
       </td>
     </tr>`;
@@ -375,7 +375,7 @@ const completeKyc = async (email, role) => {
     <tr>
       <td class="wrapper">
       <p>Dear ${email},</p>
-      <p>Your KYC has been successfully completed. You may now use the platform as per your role as  ${role} for Project iGreen.
+      <p>Your KYC has been successfully completed. You may now use the platform as per your role as  ${role} for Project iGreen.</p>
       <p>Thanks,<br/>Team Project iGreen</p>  
       </td>
     </tr>`;
@@ -390,5 +390,30 @@ const completeKyc = async (email, role) => {
 
 	console.log("Message sent: " + info.messageId);
 };
+const borrowRequestCreation = async (email) => {
+	const mainBody = `<!-- START MAIN CONTENT AREA -->
+    <tr>
+      <td class="wrapper">
+      <p>Dear ${email},</p>
+      <p>You have successfully created a Green Bond request. You will be notified when the request gets approved.</p>
+      <p>Thanks,<br/>Team Project iGreen</p>  
+      </td>
+    </tr>`;
 
-module.exports = { userRegistration, createProfile, completeKyc };
+	const info = await transporter.sendMail({
+		from: "Dygnify <dygnify@gmail.com>",
+		to: email,
+		subject: "Project iGreen - Bond proposal creation",
+		html: startEmailWrapper + mainBody + endEmailWrapper,
+		cc: ["admin@gmail.com"],
+	});
+
+	console.log("Message sent: " + info.messageId);
+};
+
+module.exports = {
+	userRegistration,
+	createProfile,
+	completeKyc,
+	borrowRequestCreation,
+};
