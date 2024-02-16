@@ -1,6 +1,6 @@
 const { logger } = require("firebase-functions/v1");
 const { axiosHttpService } = require("../axioscall");
-const { borrowRequestCreation } = require("../emailHelper");
+const { borrowRequestCreation, adminApproval } = require("../emailHelper");
 const { getUser } = require("./userAsset");
 
 const createGreenBondOption = (bond) => {
@@ -30,11 +30,15 @@ const createGreenBond = async (bond) => {
 		return;
 	}
 	let data = bond;
+	let action = data.action;
+	if (action) {
+		delete data.action;
+	}
 	if (!bond.Id) {
 		const id = Math.floor(Date.now() / 1000);
 		data = {
 			Id: id.toString(),
-			...bond,
+			...data,
 			ledgerMetadata: {
 				owners: [
 					{
@@ -47,9 +51,14 @@ const createGreenBond = async (bond) => {
 	}
 	let result = await axiosHttpService(createGreenBondOption(data));
 	if (result.code === 201) {
+		const res = await getUser(bond.borrowerId.toString());
 		if (!bond.Id) {
-			const res = await getUser(bond.borrowerId.toString());
 			await borrowRequestCreation(res.data.email);
+		} else if (action === "Admin Approved" || action === "Admin Rejected") {
+			await adminApproval(
+				res.data.email,
+				action === "Admin Approved" ? true : false
+			);
 		}
 		return { Id: data.Id, ...result.res };
 	}

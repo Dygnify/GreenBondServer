@@ -29,6 +29,7 @@ const GreenBond = Joi.object({
 	sopDocHash: Joi.string().required(),
 	issueNoteDoc: Joi.string(),
 	delayChargeRatePercentage: Joi.number(),
+	action: Joi.string(),
 });
 
 module.exports = GreenBond;
