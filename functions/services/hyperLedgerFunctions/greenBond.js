@@ -5,8 +5,10 @@ const {
 	adminApproval,
 	diligenceApproval,
 	bondAvailableForSubscription,
+	fullSubscription,
 } = require("../emailHelper");
 const { getUser, getAllUser } = require("./userAsset");
+const { getTx } = require("./transaction");
 
 const createGreenBondOption = (bond) => {
 	if (!bond) {
@@ -59,31 +61,65 @@ const createGreenBond = async (bond) => {
 		const res = await getUser(bond.borrowerId.toString());
 		if (!bond.Id) {
 			await borrowRequestCreation(res.data.email);
-		} else if (action === "Admin Approved" || action === "Admin Rejected") {
-			await adminApproval(
-				res.data.email,
-				action === "Admin Approved" ? true : false
-			);
-		} else if (
-			action === "Diligence Approved" ||
-			action === "Diligence Rejected"
-		) {
-			await diligenceApproval(
-				res.data.email,
-				action === "Diligence Approved" ? true : false
-			);
-			// Send Bond is available for subscription
-			if (action === "Diligence Approved") {
-				const res = await getAllUser();
-				const subscribers = res.records.filter(
-					(user) => user.data.role === 0
-				);
-				subscribers.forEach(async (sub) => {
-					await bondAvailableForSubscription(
-						sub.data.email,
-						bond.loan_name
+		} else {
+			switch (action) {
+				case "Admin Approved":
+					await adminApproval(res.data.email, true);
+					break;
+				case "Admin Rejected":
+					await adminApproval(res.data.email, false);
+					break;
+				case "Diligence Approved":
+					await diligenceApproval(res.data.email, true);
+					const result = await getAllUser();
+					const subscribers = result.records.filter(
+						(user) => user.data.role === 0
 					);
-				});
+					for (let i = 0; i < subscribers.length; i++) {
+						let sub = subscribers[i];
+						await bondAvailableForSubscription(
+							sub.data.email,
+							bond.loan_name
+						);
+					}
+					break;
+				case "Diligence Rejected":
+					await diligenceApproval(res.data.email, false);
+					break;
+
+				case "Invest Bond":
+					if (bond.loan_amount === bond.totalSubscribed) {
+						let transactions = await getTx("bondId", bond.Id);
+						transactions = transactions.records
+							? transactions.records
+							: [];
+						transactions = transactions.map((tx) => tx.data);
+						transactions = transactions.filter(
+							(tx) =>
+								tx.investorTransactionType === 0 &&
+								tx.bondId === bond.Id
+						);
+						console.log(transactions);
+						let emailsTo = ["custodian@gmail.com"];
+						for (let i = 0; i < transactions.length; i++) {
+							let tx = transactions[i];
+							const res = await getUser(tx.subscriberId);
+							emailsTo.push(res.data.email);
+						}
+						emailsTo = [...new Set(emailsTo)];
+						for (let i = 0; i < emailsTo.length; i++) {
+							let email = emailsTo[i];
+							await fullSubscription(
+								email,
+								[res.data.email, "admin@gmail.com"],
+								bond.loan_name
+							);
+						}
+					}
+					break;
+
+				default:
+					break;
 			}
 		}
 		return { Id: data.Id, ...result.res };
