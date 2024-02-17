@@ -6,6 +6,7 @@ const {
 	diligenceApproval,
 	bondAvailableForSubscription,
 	fullSubscription,
+	tokenizeBond,
 } = require("../emailHelper");
 const { getUser, getAllUser } = require("./userAsset");
 const { getTx } = require("./transaction");
@@ -118,6 +119,31 @@ const createGreenBond = async (bond) => {
 					}
 					break;
 
+				case "Tokenize Bond":
+					let transactions = await getTx("bondId", bond.Id);
+					transactions = transactions.records
+						? transactions.records
+						: [];
+					transactions = transactions.map((tx) => tx.data);
+					transactions = transactions.filter(
+						(tx) =>
+							tx.investorTransactionType === 0 &&
+							tx.bondId === bond.Id
+					);
+					console.log(transactions);
+					let subscribersArray = [];
+					for (let i = 0; i < transactions.length; i++) {
+						let tx = transactions[i];
+						const res = await getUser(tx.subscriberId);
+						subscribersArray.push(res.data.email);
+					}
+					subscribersArray = [...new Set(subscribersArray)];
+					await tokenizeBond(
+						[res.data.email],
+						[...subscribersArray, "custodian@gmail.com"],
+						bond.loan_name
+					);
+					break;
 				default:
 					break;
 			}
