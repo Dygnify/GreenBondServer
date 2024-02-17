@@ -1,7 +1,7 @@
 const { logger } = require("firebase-functions/v1");
 const { axiosHttpService } = require("../axioscall");
 const uuid = require("uuid");
-const { repayment } = require("../emailHelper");
+const { repayment, distributePay } = require("../emailHelper");
 const { getUser } = require("./userAsset");
 
 const createTxOption = (transaction) => {
@@ -51,15 +51,26 @@ const createTx = async (transaction) => {
 	}
 	let result = await axiosHttpService(createTxOption(data));
 	if (result.code === 201) {
-		if (!transaction.Id && transaction?.borrowerTransactionType === 1) {
-			const res = await getUser(transaction.issuerId);
-			await repayment(
-				"custodian@gmail.com",
-				[res.data.email, "admin@gmail.com"],
-				transaction.bondName,
-				transaction.amount,
-				transaction.transactionDate
-			);
+		if (!transaction.Id) {
+			if (transaction?.borrowerTransactionType === 1) {
+				const res = await getUser(transaction.issuerId);
+				await repayment(
+					"custodian@gmail.com",
+					[res.data.email, "admin@gmail.com"],
+					transaction.bondName,
+					transaction.amount,
+					transaction.transactionDate
+				);
+			} else if (transaction?.investorTransactionType === 1) {
+				const res = await getUser(transaction.subscriberId);
+				await distributePay(
+					res.data.email,
+					["custodian@gmail.com", "admin@gmail.com"],
+					transaction.bondName,
+					transaction.amount,
+					transaction.transactionDate
+				);
+			}
 		}
 		return { Id: data.Id, ...result.res };
 	}
