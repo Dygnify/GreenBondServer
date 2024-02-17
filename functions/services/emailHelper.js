@@ -520,6 +520,26 @@ const tokenizeBond = async (email, cc, bondName) => {
 
 	console.log("Message sent: " + info.messageId);
 };
+const repayment = async (email, cc, bondName, dueAmount, repaymentDate) => {
+	const mainBody = `<!-- START MAIN CONTENT AREA -->
+    <tr>
+      <td class="wrapper">
+      <p>Dear ${email},</p>
+      <p>The Green bond ${bondName} repayment of ${dueAmount} has been done on ${repaymentDate}. Kindly distribute repayment funds to subscribers.</p>
+      <p>Thanks,<br/>Team Project iGreen</p>  
+      </td>
+    </tr>`;
+
+	const info = await transporter.sendMail({
+		from: "Dygnify <dygnify@gmail.com>",
+		to: email,
+		subject: "Project iGreen - Green Bond repayment done",
+		html: startEmailWrapper + mainBody + endEmailWrapper,
+		cc: cc,
+	});
+
+	console.log("Message sent: " + info.messageId);
+};
 
 module.exports = {
 	userRegistration,
@@ -531,4 +551,5 @@ module.exports = {
 	bondAvailableForSubscription,
 	fullSubscription,
 	tokenizeBond,
+	repayment,
 };

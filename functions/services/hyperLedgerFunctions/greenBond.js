@@ -139,7 +139,7 @@ const createGreenBond = async (bond) => {
 					}
 					subscribersArray = [...new Set(subscribersArray)];
 					await tokenizeBond(
-						[res.data.email],
+						res.data.email,
 						[...subscribersArray, "custodian@gmail.com"],
 						bond.loan_name
 					);

@@ -1,6 +1,8 @@
 const { logger } = require("firebase-functions/v1");
 const { axiosHttpService } = require("../axioscall");
 const uuid = require("uuid");
+const { repayment } = require("../emailHelper");
+const { getUser } = require("./userAsset");
 
 const createTxOption = (transaction) => {
 	if (!transaction) {
@@ -34,7 +36,7 @@ const createTx = async (transaction) => {
 		const id = uuid.v4();
 		data = {
 			Id: id.toString(),
-			...transaction,
+			...data,
 			ledgerMetadata: {
 				owners: [
 					{
@@ -49,6 +51,16 @@ const createTx = async (transaction) => {
 	}
 	let result = await axiosHttpService(createTxOption(data));
 	if (result.code === 201) {
+		if (!transaction.Id && transaction?.borrowerTransactionType === 1) {
+			const res = await getUser(transaction.issuerId);
+			await repayment(
+				"custodian@gmail.com",
+				[res.data.email, "admin@gmail.com"],
+				transaction.bondName,
+				transaction.amount,
+				transaction.transactionDate
+			);
+		}
 		return { Id: data.Id, ...result.res };
 	}
 	return result;
