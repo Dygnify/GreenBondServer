@@ -563,6 +563,27 @@ const distributePay = async (email, cc, bondName, dueAmount, repaymentDate) => {
 	console.log("Message sent: " + info.messageId);
 };
 
+const matureBond = async (email, cc, bondName, date) => {
+	const mainBody = `<!-- START MAIN CONTENT AREA -->
+    <tr>
+      <td class="wrapper">
+      <p>Dear ${email},</p>
+      <p>The Green bond ${bondName} has matured and closed on ${date}.</p>
+      <p>Thanks,<br/>Team Project iGreen</p>  
+      </td>
+    </tr>`;
+
+	const info = await transporter.sendMail({
+		from: "Dygnify <dygnify@gmail.com>",
+		to: email,
+		subject: "Project iGreen - Green Bond matured",
+		html: startEmailWrapper + mainBody + endEmailWrapper,
+		cc: cc,
+	});
+
+	console.log("Message sent: " + info.messageId);
+};
+
 module.exports = {
 	userRegistration,
 	createProfile,
@@ -575,4 +596,5 @@ module.exports = {
 	tokenizeBond,
 	repayment,
 	distributePay,
+	matureBond,
 };

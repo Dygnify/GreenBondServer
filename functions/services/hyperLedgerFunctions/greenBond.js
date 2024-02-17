@@ -7,9 +7,11 @@ const {
 	bondAvailableForSubscription,
 	fullSubscription,
 	tokenizeBond,
+	matureBond,
 } = require("../emailHelper");
 const { getUser, getAllUser } = require("./userAsset");
 const { getTx } = require("./transaction");
+const { convertTimestampToDate } = require("../helper/helperFunctions");
 
 const createGreenBondOption = (bond) => {
 	if (!bond) {
@@ -120,28 +122,30 @@ const createGreenBond = async (bond) => {
 					break;
 
 				case "Tokenize Bond":
-					let transactions = await getTx("bondId", bond.Id);
-					transactions = transactions.records
-						? transactions.records
-						: [];
-					transactions = transactions.map((tx) => tx.data);
-					transactions = transactions.filter(
-						(tx) =>
-							tx.investorTransactionType === 0 &&
-							tx.bondId === bond.Id
+					const subscribersArray = await getSubscribersFromBondId(
+						bond.Id
 					);
-					console.log(transactions);
-					let subscribersArray = [];
-					for (let i = 0; i < transactions.length; i++) {
-						let tx = transactions[i];
-						const res = await getUser(tx.subscriberId);
-						subscribersArray.push(res.data.email);
-					}
-					subscribersArray = [...new Set(subscribersArray)];
 					await tokenizeBond(
 						res.data.email,
 						[...subscribersArray, "custodian@gmail.com"],
 						bond.loan_name
+					);
+					break;
+
+				case "Mature Bond":
+					const subscribersArr = await getSubscribersFromBondId(
+						bond.Id
+					);
+					const todayDate = convertTimestampToDate(Date.now());
+					await matureBond(
+						res.data.email,
+						[
+							...subscribersArr,
+							"custodian@gmail.com",
+							"admin@gmail.com",
+						],
+						bond.loan_name,
+						todayDate
 					);
 					break;
 				default:
@@ -218,6 +222,23 @@ const getAllGreenBonds = async (pageSize = 500, bookmark) => {
 	} catch (error) {
 		logger.error(error);
 	}
+};
+
+const getSubscribersFromBondId = async (bondId) => {
+	let transactions = await getTx("bondId", bondId);
+	transactions = transactions.records ? transactions.records : [];
+	transactions = transactions.map((tx) => tx.data);
+	transactions = transactions.filter(
+		(tx) => tx.investorTransactionType === 0 && tx.bondId === bondId
+	);
+	let subscribersArray = [];
+	for (let i = 0; i < transactions.length; i++) {
+		let tx = transactions[i];
+		const res = await getUser(tx.subscriberId);
+		subscribersArray.push(res.data.email);
+	}
+	subscribersArray = [...new Set(subscribersArray)];
+	return subscribersArray;
 };
 
 module.exports = { createGreenBond, getGreenBond, getAllGreenBonds };
