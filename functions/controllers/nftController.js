@@ -5,6 +5,12 @@ const {
 	burnNft: burnNftFunction,
 } = require("../services/hyperLedgerFunctions/nft");
 const Nft = require("../models/nft");
+const { axiosHttpService } = require("../services/axioscall");
+const { getGreenBond } = require("../services/hyperLedgerFunctions/greenBond");
+const {
+	getTokenized,
+} = require("../services/hyperLedgerFunctions/tokenizedBond");
+const CryptoJS = require("crypto-js");
 
 // Create bond
 const createNft = async (req, res) => {
@@ -91,4 +97,103 @@ const burnNft = async (req, res) => {
 	res.status(400).send("Invalid request");
 };
 
-module.exports = { createNft, getNft, burnNft };
+// Webhook Request
+const webhook = async (req, res) => {
+	if (req.body.event === "GreenDataUpdated") {
+		const projectId = req.body.projectId;
+		const bond = await getGreenBond({
+			field: "loan_name",
+			value: projectId,
+		});
+		if (bond.count) {
+			const bondId = bond.records[0].id;
+			if (bond.records[0].data.status === 5) {
+				const tokenizedBond = await getTokenized("bondId", bondId);
+				if (tokenizedBond.count) {
+					const nftId = tokenizedBond.records[0].data.nftId;
+					let nft = await getNftFunction({
+						functionName: "QueryGreenBondNFT",
+						args: [nftId],
+					});
+					if (nft.success) {
+						nft = nft.res;
+						const monitoringOptions = {
+							url: `${process.env.REACT_APP_GREENDATA_API_URI}/getGreenMonitoringData`,
+							method: "POST",
+							maxBodyLength: Infinity,
+							headers: {
+								"Content-Type": "application/json",
+							},
+							data: {
+								projectId: projectId,
+							},
+						};
+						const monitoringResult = await axiosHttpService(
+							monitoringOptions
+						);
+						const date = monitoringResult.res.date;
+						let dateExistsInNft = false;
+						nft.greenDataMonitoringHashList.forEach((element) => {
+							if (element.time === date) {
+								dateExistsInNft = true;
+								return;
+							}
+						});
+						if (!dateExistsInNft) {
+							let stringObj = JSON.stringify(
+								monitoringResult.res
+							);
+							let hash = CryptoJS.SHA256(stringObj);
+							let hashString = hash.toString(CryptoJS.enc.Hex);
+							let nftData = {
+								functionName: "UpdateGreenBondNFTDynamicData",
+								identity: "custodian@gmail.com",
+								args: [
+									nftId,
+									"greenDataMonitoringHashList",
+									{
+										time: date,
+										hash: hashString,
+									},
+								],
+							};
+							await createNftFunction(nftData);
+							const greenDataOptions = {
+								url: `${process.env.REACT_APP_GREENDATA_API_URI}/getGreenData`,
+								method: "POST",
+								maxBodyLength: Infinity,
+								headers: {
+									"Content-Type": "application/json",
+								},
+								data: {
+									projectId: projectId,
+								},
+							};
+							const greenDataResult = await axiosHttpService(
+								greenDataOptions
+							);
+							stringObj = JSON.stringify(greenDataResult.res);
+							hash = CryptoJS.SHA256(stringObj);
+							hashString = hash.toString(CryptoJS.enc.Hex);
+							nftData = {
+								functionName: "UpdateGreenBondNFTDynamicData",
+								identity: "custodian@gmail.com",
+								args: [
+									nftId,
+									"greenDataHashList",
+									{
+										time: date,
+										hash: hashString,
+									},
+								],
+							};
+							await createNftFunction(nftData);
+						}
+					}
+				}
+			}
+		}
+	}
+	res.send("Received!");
+};
+module.exports = { createNft, getNft, burnNft, webhook };

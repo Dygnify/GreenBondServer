@@ -54,6 +54,7 @@ const createGreenBond = async (bond) => {
 					{
 						orgId: process.env.SPYDRA_MEMBERSHIP_ID,
 						borrowerId: bond.borrowerId.toString(),
+						loan_name: bond.loan_name,
 					},
 				],
 			},
@@ -166,6 +167,14 @@ const getGreenBondOption = (field, value) => {
 		return {
 			method: "get",
 			url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset?assetType=GreenBond&id=${value}&depth=0`,
+			headers: {
+				"X-API-KEY": process.env.SPYDRA_API_KEY,
+			},
+		};
+	} else if (field === "loan_name") {
+		return {
+			method: "get",
+			url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset/all?assetType=GreenBond&actAs=loan_name:${value}`,
 			headers: {
 				"X-API-KEY": process.env.SPYDRA_API_KEY,
 			},
