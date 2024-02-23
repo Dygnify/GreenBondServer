@@ -271,6 +271,7 @@ function generateTermLoanCashflows(
 	principal,
 	interestRate,
 	loanTermInMonths,
+	paymentFrequencyInDays,
 	disbursementDate,
 	investorUpfrontFeePercentage,
 	platformFeePercentage,
@@ -287,6 +288,8 @@ function generateTermLoanCashflows(
 			interestRate > 100 ||
 			!loanTermInMonths ||
 			loanTermInMonths <= 0 ||
+			!paymentFrequencyInDays ||
+			paymentFrequencyInDays <= 0 ||
 			investorUpfrontFeePercentage == undefined ||
 			investorUpfrontFeePercentage < 0 ||
 			getDayFromDate(disbursementDate) > 28 ||
@@ -302,9 +305,12 @@ function generateTermLoanCashflows(
 
 		// calculate the emi
 		const monthlyInterestRate = interestRate / 100 / 12;
+		const emiMonths = Math.abs(
+			(loanTermInMonths * 30) / paymentFrequencyInDays
+		);
 		let monthlyPayment =
 			(principal * monthlyInterestRate) /
-			(1 - Math.pow(1 + monthlyInterestRate, -loanTermInMonths));
+			(1 - Math.pow(1 + monthlyInterestRate, -emiMonths));
 
 		//calculate the first entry of cashflow
 		let remainingPrincipal = principal;
@@ -351,7 +357,7 @@ function generateTermLoanCashflows(
 
 		let juniorAccumulatedPrincipal = 0;
 		// amortisation schedule calculation
-		for (let month = 1; month <= loanTermInMonths; month++) {
+		for (let month = 1; month <= emiMonths; month++) {
 			const noOfDays = calculateDateDifferenceInDays(
 				lastEmiDate,
 				nextEmiDate
@@ -360,7 +366,7 @@ function generateTermLoanCashflows(
 				remainingPrincipal * noOfDays * dailyInterestRate;
 			let principalPayment = monthlyPayment - interestPayment;
 			remainingPrincipal -= principalPayment;
-			if (month === loanTermInMonths) {
+			if (month === emiMonths) {
 				monthlyPayment += remainingPrincipal;
 			}
 			amortisationSchedule.push({
@@ -387,7 +393,7 @@ function generateTermLoanCashflows(
 				interestPayment * seniorContributionPercentage -
 				platformFee * seniorContributionPercentage -
 				juniorFees;
-			if (month === loanTermInMonths) {
+			if (month === emiMonths) {
 				principalPayment += remainingPrincipal;
 			}
 			const seniorPricipalPortion =
@@ -420,7 +426,7 @@ function generateTermLoanCashflows(
 				juniorAccumulatedPrincipal * dailyFloatPercentage * noOfDays;
 			const juniorPayout = juniorInterestPortion + floatOnPrincipal;
 			const totalJuniorPayout =
-				month === loanTermInMonths
+				month === emiMonths
 					? juniorTotalInvestment + juniorPayout
 					: juniorPayout;
 			juniorAmortisationSchedule.push({
@@ -476,6 +482,7 @@ const getTermLoanAmortisationSchedule = async (req, res) => {
 			req.body.loanAmount,
 			req.body.interestRatePercentage,
 			req.body.tenureInMonths,
+			req.body.paymentFrequencyInDays,
 			req.body.disbursmentDate,
 			req.body.investorUpfrontFees,
 			req.body.platformFeesPercentage,
@@ -533,6 +540,7 @@ function generateBulletLoanCashflows(
 	principal,
 	interestRate,
 	loanTermInMonths,
+	paymentFrequencyInDays,
 	disbursementDate,
 	investorUpfrontFeePercentage,
 	platformFeePercentage,
@@ -549,6 +557,8 @@ function generateBulletLoanCashflows(
 			interestRate > 100 ||
 			!loanTermInMonths ||
 			loanTermInMonths <= 0 ||
+			!paymentFrequencyInDays ||
+			paymentFrequencyInDays <= 0 ||
 			investorUpfrontFeePercentage == undefined ||
 			investorUpfrontFeePercentage < 0 ||
 			getDayFromDate(disbursementDate) > 28 ||
@@ -609,22 +619,25 @@ function generateBulletLoanCashflows(
 		const juniorPricipalPortion =
 			(principal * juniorTranchFeePercentage) / 100;
 		const seniorPricipalPortion = principal * seniorContributionPercentage;
+		const emiMonths = Math.abs(
+			(loanTermInMonths * 30) / paymentFrequencyInDays
+		);
 		// amortisation schedule calculation
-		for (let month = 1; month <= loanTermInMonths; month++) {
+		for (let month = 1; month <= emiMonths; month++) {
 			const noOfDays = calculateDateDifferenceInDays(
 				lastEmiDate,
 				nextEmiDate
 			);
 			const interestPayment = principal * noOfDays * dailyInterestRate;
 			let emiPayment =
-				month === loanTermInMonths
+				month === emiMonths
 					? interestPayment + principal
 					: interestPayment;
 
 			amortisationSchedule.push({
 				month: nextEmiDate,
 				days: noOfDays,
-				principal: month === loanTermInMonths ? principal : 0,
+				principal: month === emiMonths ? principal : 0,
 				interest: interestPayment,
 				totalPayment: emiPayment,
 			});
@@ -644,7 +657,7 @@ function generateBulletLoanCashflows(
 				juniorFees;
 
 			const seniorPay =
-				month === loanTermInMonths
+				month === emiMonths
 					? seniorInterestPortion + seniorPricipalPortion
 					: seniorInterestPortion;
 			seniorAmortisationSchedule.push({
@@ -652,7 +665,7 @@ function generateBulletLoanCashflows(
 				juniorFees,
 				seniorInterestPortion,
 				seniorPricipalPortion:
-					month === loanTermInMonths ? seniorPricipalPortion : 0,
+					month === emiMonths ? seniorPricipalPortion : 0,
 				totalPayment: seniorPay,
 			});
 
@@ -668,13 +681,13 @@ function generateBulletLoanCashflows(
 				juniorFees;
 
 			const totalJuniorPayout =
-				month === loanTermInMonths
+				month === emiMonths
 					? juniorPricipalPortion + juniorInterestPortion
 					: juniorInterestPortion;
 			juniorAmortisationSchedule.push({
 				juniorInterestPortion,
 				juniorPricipalPortion:
-					month === loanTermInMonths ? juniorPricipalPortion : 0,
+					month === emiMonths ? juniorPricipalPortion : 0,
 				totalJuniorPayout,
 			});
 			juniorInvestorCashFlow.push({
@@ -724,6 +737,7 @@ const getBulletLoanAmortisationSchedule = async (req, res) => {
 			req.body.loanAmount,
 			req.body.interestRatePercentage,
 			req.body.tenureInMonths,
+			req.body.paymentFrequencyInDays,
 			req.body.disbursmentDate,
 			req.body.investorUpfrontFees,
 			req.body.platformFeesPercentage,
