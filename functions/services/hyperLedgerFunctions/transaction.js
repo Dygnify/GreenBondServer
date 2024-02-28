@@ -2,7 +2,7 @@ const { logger } = require("firebase-functions/v1");
 const { axiosHttpService } = require("../axioscall");
 const uuid = require("uuid");
 const { repayment, distributePay } = require("../emailHelper");
-const { getUser } = require("./userAsset");
+const { getUser, getAllUser } = require("./userAsset");
 
 const createTxOption = (transaction) => {
 	if (!transaction) {
@@ -51,21 +51,56 @@ const createTx = async (transaction) => {
 	}
 	let result = await axiosHttpService(createTxOption(data));
 	if (result.code === 201) {
+		let admins = [];
+		const adminResult = await getAllUser();
+
+		adminResult.records.forEach((user) => {
+			if (user.data.role === 4) {
+				admins.push(user.data.email);
+			}
+		});
 		if (!transaction.Id) {
 			if (transaction?.borrowerTransactionType === 1) {
 				const res = await getUser(transaction.issuerId);
-				await repayment(
-					"custodian@gmail.com",
-					[res.data.email, "admin@gmail.com"],
-					transaction.bondName,
-					transaction.amount,
-					transaction.transactionDate
-				);
+				let custodians = [];
+				const result = await getAllUser();
+
+				result.records.forEach((user) => {
+					if (user.data.role === 2) {
+						const profile = JSON.parse(user.data.profile);
+						const companyName = profile.companyName;
+						custodians.push({
+							companyName: companyName,
+							email: user.data.email,
+						});
+					}
+				});
+				for (let i = 0; i < custodians.length; i++) {
+					await repayment(
+						custodians[i].companyName,
+						custodians[i].email,
+						[res.data.email, ...admins],
+						transaction.bondName,
+						transaction.amount,
+						transaction.transactionDate
+					);
+				}
 			} else if (transaction?.investorTransactionType === 1) {
 				const res = await getUser(transaction.subscriberId);
+				const profile = JSON.parse(res.data.profile);
+				const companyName = profile.companyName;
+				let custodians = [];
+				const results = await getAllUser();
+
+				results.records.forEach((user) => {
+					if (user.data.role === 2) {
+						custodians.push(user.data.email);
+					}
+				});
 				await distributePay(
+					companyName,
 					res.data.email,
-					["custodian@gmail.com", "admin@gmail.com"],
+					[...custodians, ...admins],
 					transaction.bondName,
 					transaction.amount,
 					transaction.transactionDate

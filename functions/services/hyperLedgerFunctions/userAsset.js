@@ -63,17 +63,30 @@ const createNewUser = async (user) => {
 	}
 	let result = await axiosHttpService(createUserOption(data));
 	if (result.code === 201) {
+		// Get admins
+		let admins = [];
+		const adminResult = await getAllUser();
+
+		adminResult.records.forEach((user) => {
+			if (user.data.role === 4) {
+				admins.push(user.data.email);
+			}
+		});
+
 		if (!user.Id) {
 			await userRegistration(
 				user.email,
 				"12345678",
 				Role[user.role],
-				"https://green-bond-app.vercel.app"
+				"https://green-bond-app.vercel.app",
+				admins
 			);
 		} else if (action === "ProfileCreation") {
-			await createProfile(user.email, Role[user.role]);
+			await createProfile(user.email, Role[user.role], admins);
 		} else if (action === "kyc") {
-			await completeKyc(user.email, Role[user.role]);
+			const profile = JSON.parse(user.profile);
+			const companyName = profile.companyName;
+			await completeKyc(companyName, user.email, Role[user.role], admins);
 		}
 		return { Id: data.Id, ...result.res };
 	}
