@@ -4,7 +4,7 @@ const Tranch = require("../models/tranch");
 const {
 	isDateGreaterThan,
 	getDayFromDate,
-	addOneMonthToDate,
+	addDaysToDate,
 	calculateDateDifferenceInDays,
 } = require("../helper/dateFunctions");
 const xirr = require("xirr");
@@ -319,7 +319,10 @@ function generateTermLoanCashflows(
 		const juniorAmortisationSchedule = [];
 		const cashFlow = [];
 		const dailyInterestRate = interestRate / 100 / 365;
-		let nextEmiDate = addOneMonthToDate(disbursementDate);
+		let nextEmiDate = addDaysToDate(
+			disbursementDate,
+			paymentFrequencyInDays
+		);
 		if (!nextEmiDate || dailyInterestRate < 0) {
 			return undefined;
 		}
@@ -441,7 +444,7 @@ function generateTermLoanCashflows(
 			});
 			// set next dates
 			lastEmiDate = nextEmiDate;
-			nextEmiDate = addOneMonthToDate(nextEmiDate);
+			nextEmiDate = addDaysToDate(nextEmiDate, paymentFrequencyInDays);
 		}
 
 		return {
@@ -578,7 +581,10 @@ function generateBulletLoanCashflows(
 		const juniorAmortisationSchedule = [];
 		const cashFlow = [];
 		const dailyInterestRate = interestRate / 100 / 365;
-		let nextEmiDate = addOneMonthToDate(disbursementDate);
+		let nextEmiDate = addDaysToDate(
+			disbursementDate,
+			paymentFrequencyInDays
+		);
 		if (!nextEmiDate || dailyInterestRate < 0) {
 			return undefined;
 		}
@@ -696,7 +702,7 @@ function generateBulletLoanCashflows(
 			});
 			// set next dates
 			lastEmiDate = nextEmiDate;
-			nextEmiDate = addOneMonthToDate(nextEmiDate);
+			nextEmiDate = addDaysToDate(nextEmiDate, paymentFrequencyInDays);
 		}
 
 		return {

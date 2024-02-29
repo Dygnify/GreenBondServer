@@ -61,9 +61,21 @@ function addOneMonthToDate(dateString) {
 	return undefined;
 }
 
+// Function to add days to a date
+function addDaysToDate(date, days) {
+	try {
+		var result = new Date(date);
+		result.setDate(result.getDate() + days);
+		return result;
+	} catch (error) {
+		logger.error(error);
+	}
+}
+
 module.exports = {
 	calculateDateDifferenceInDays,
 	isDateGreaterThan,
 	getDayFromDate,
 	addOneMonthToDate,
+	addDaysToDate,
 };

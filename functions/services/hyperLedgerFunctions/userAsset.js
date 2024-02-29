@@ -66,7 +66,7 @@ const createNewUser = async (user) => {
 		if (!user.Id) {
 			await userRegistration(
 				user.email,
-				"12345678",
+				user.password,
 				Role[user.role],
 				"https://green-bond-app.vercel.app"
 			);
