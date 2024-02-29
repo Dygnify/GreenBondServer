@@ -333,7 +333,7 @@ const transporter = nodemailer.createTransport({
 	},
 });
 
-const userRegistration = async (email, password, role, link) => {
+const userRegistration = async (email, password, role, link, cc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
@@ -349,12 +349,12 @@ const userRegistration = async (email, password, role, link) => {
 		to: email,
 		subject: "Project iGreen - New user registered",
 		html: startEmailWrapper + mainBody + endEmailWrapper,
-		cc: ["admin@gmail.com"],
+		cc: cc,
 	});
 
 	console.log("Message sent: " + info.messageId);
 };
-const createProfile = async (email, role) => {
+const createProfile = async (email, role, cc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
@@ -369,16 +369,16 @@ const createProfile = async (email, role) => {
 		to: email,
 		subject: "Project iGreen - User profile created",
 		html: startEmailWrapper + mainBody + endEmailWrapper,
-		cc: ["admin@gmail.com"],
+		cc: cc,
 	});
 
 	console.log("Message sent: " + info.messageId);
 };
-const completeKyc = async (email, role) => {
+const completeKyc = async (name, email, role, cc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
-      <p>Dear ${email},</p>
+      <p>Dear ${name},</p>
       <p>Your KYC has been successfully completed. You may now use the platform as per your role as  ${role} for Project iGreen.</p>
       <p>Thanks,<br/>Team Project iGreen</p>  
       </td>
@@ -389,16 +389,16 @@ const completeKyc = async (email, role) => {
 		to: email,
 		subject: "Project iGreen - KYC completed",
 		html: startEmailWrapper + mainBody + endEmailWrapper,
-		cc: ["admin@gmail.com"],
+		cc: cc,
 	});
 
 	console.log("Message sent: " + info.messageId);
 };
-const borrowRequestCreation = async (email) => {
+const borrowRequestCreation = async (name, email, cc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
-      <p>Dear ${email},</p>
+      <p>Dear ${name},</p>
       <p>You have successfully created a Green Bond request. You will be notified when the request gets approved.</p>
       <p>Thanks,<br/>Team Project iGreen</p>  
       </td>
@@ -409,17 +409,17 @@ const borrowRequestCreation = async (email) => {
 		to: email,
 		subject: "Project iGreen - Bond proposal creation",
 		html: startEmailWrapper + mainBody + endEmailWrapper,
-		cc: ["admin@gmail.com"],
+		cc: cc,
 	});
 
 	console.log("Message sent: " + info.messageId);
 };
 
-const adminApproval = async (email, approved) => {
+const adminApproval = async (name, email, approved, cc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
-      <p>Dear ${email},</p>
+      <p>Dear ${name},</p>
       <p>Your Green Bond request has been ${
 			approved ? "successfully approved" : "rejected"
 		} by Admin.</p>
@@ -432,17 +432,17 @@ const adminApproval = async (email, approved) => {
 		to: email,
 		subject: "Project iGreen - Bond proposal Admin approval",
 		html: startEmailWrapper + mainBody + endEmailWrapper,
-		cc: ["admin@gmail.com"],
+		cc: cc,
 	});
 
 	console.log("Message sent: " + info.messageId);
 };
 
-const diligenceApproval = async (email, approved) => {
+const diligenceApproval = async (name, email, approved, cc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
-      <p>Dear ${email},</p>
+      <p>Dear ${name},</p>
       <p>Your Green Bond request has been ${
 			approved ? "successfully approved" : "rejected"
 		}.</p>
@@ -455,17 +455,17 @@ const diligenceApproval = async (email, approved) => {
 		to: email,
 		subject: "Project iGreen - Bond proposal Diligence approval",
 		html: startEmailWrapper + mainBody + endEmailWrapper,
-		cc: ["admin@gmail.com"],
+		cc: cc,
 	});
 
 	console.log("Message sent: " + info.messageId);
 };
 
-const bondAvailableForSubscription = async (email, bondName) => {
+const bondAvailableForSubscription = async (name, email, bondName, cc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
-      <p>Dear ${email},</p>
+      <p>Dear ${name},</p>
       <p>The Green bond ${bondName} is available for subscription.<br/>Please login to access details and subscribe..
       </p>
       <p>Thanks,<br/>Team Project iGreen</p>  
@@ -477,17 +477,17 @@ const bondAvailableForSubscription = async (email, bondName) => {
 		to: email,
 		subject: "Project iGreen - Green Bond available for subscription",
 		html: startEmailWrapper + mainBody + endEmailWrapper,
-		cc: ["admin@gmail.com"],
+		cc: cc,
 	});
 
 	console.log("Message sent: " + info.messageId);
 };
 
-const fullSubscription = async (email, cc, bondName) => {
+const fullSubscription = async (name, email, cc, bondName) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
-      <p>Dear ${email},</p>
+      <p>Dear ${name},</p>
       <p>The Green bond ${bondName} has been fully subscribed.</p>
       <p>Thanks,<br/>Team Project iGreen</p>  
       </td>
@@ -504,11 +504,11 @@ const fullSubscription = async (email, cc, bondName) => {
 	console.log("Message sent: " + info.messageId);
 };
 
-const tokenizeBond = async (email, cc, bondName) => {
+const tokenizeBond = async (name, email, cc, bondName) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
-      <p>Dear ${email},</p>
+      <p>Dear ${name},</p>
       <p>The Green bond ${bondName} has been successfully tokenized and allotted.</p>
       <p>Thanks,<br/>Team Project iGreen</p>  
       </td>
@@ -525,11 +525,18 @@ const tokenizeBond = async (email, cc, bondName) => {
 	console.log("Message sent: " + info.messageId);
 };
 
-const repayment = async (email, cc, bondName, dueAmount, repaymentDate) => {
+const repayment = async (
+	name,
+	email,
+	cc,
+	bondName,
+	dueAmount,
+	repaymentDate
+) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
-      <p>Dear ${email},</p>
+      <p>Dear ${name},</p>
       <p>The Green bond ${bondName} repayment of ${dueAmount} has been done on ${repaymentDate}. Kindly distribute repayment funds to subscribers.</p>
       <p>Thanks,<br/>Team Project iGreen</p>  
       </td>
@@ -546,11 +553,18 @@ const repayment = async (email, cc, bondName, dueAmount, repaymentDate) => {
 	console.log("Message sent: " + info.messageId);
 };
 
-const distributePay = async (email, cc, bondName, dueAmount, repaymentDate) => {
+const distributePay = async (
+	name,
+	email,
+	cc,
+	bondName,
+	dueAmount,
+	repaymentDate
+) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
-      <p>Dear ${email},</p>
+      <p>Dear ${name},</p>
       <p>The Green bond ${bondName} repayment of ${dueAmount} has been distributed on ${repaymentDate}. Kindly check your dashboard for details.</p>
       <p>Thanks,<br/>Team Project iGreen</p>  
       </td>
@@ -567,11 +581,11 @@ const distributePay = async (email, cc, bondName, dueAmount, repaymentDate) => {
 	console.log("Message sent: " + info.messageId);
 };
 
-const matureBond = async (email, cc, bondName, date) => {
+const matureBond = async (name, email, cc, bondName, date) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
-      <p>Dear ${email},</p>
+      <p>Dear ${name},</p>
       <p>The Green bond ${bondName} has matured and closed on ${date}.</p>
       <p>Thanks,<br/>Team Project iGreen</p>  
       </td>

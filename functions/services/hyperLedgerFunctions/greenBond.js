@@ -63,32 +63,69 @@ const createGreenBond = async (bond) => {
 	let result = await axiosHttpService(createGreenBondOption(data));
 	if (result.code === 201) {
 		const res = await getUser(bond.borrowerId.toString());
+		const profile = JSON.parse(res.data.profile);
+		const companyName = profile.companyName;
+
+		// Get admins
+		let admins = [];
+		const adminResult = await getAllUser();
+
+		adminResult.records.forEach((user) => {
+			if (user.data.role === 4) {
+				admins.push(user.data.email);
+			}
+		});
+
 		if (!bond.Id) {
-			await borrowRequestCreation(res.data.email);
+			await borrowRequestCreation(companyName, res.data.email, admins);
 		} else {
 			switch (action) {
 				case "Admin Approved":
-					await adminApproval(res.data.email, true);
+					await adminApproval(
+						companyName,
+						res.data.email,
+						true,
+						admins
+					);
 					break;
 				case "Admin Rejected":
-					await adminApproval(res.data.email, false);
+					await adminApproval(
+						companyName,
+						res.data.email,
+						false,
+						admins
+					);
 					break;
 				case "Diligence Approved":
-					await diligenceApproval(res.data.email, true);
+					await diligenceApproval(
+						companyName,
+						res.data.email,
+						true,
+						admins
+					);
 					const result = await getAllUser();
 					const subscribers = result.records.filter(
 						(user) => user.data.role === 0
 					);
 					for (let i = 0; i < subscribers.length; i++) {
 						let sub = subscribers[i];
+						const profile = JSON.parse(sub.data.profile);
+						const companyName = profile.companyName;
 						await bondAvailableForSubscription(
+							companyName,
 							sub.data.email,
-							bond.loan_name
+							bond.loan_name,
+							admins
 						);
 					}
 					break;
 				case "Diligence Rejected":
-					await diligenceApproval(res.data.email, false);
+					await diligenceApproval(
+						companyName,
+						res.data.email,
+						false,
+						admins
+					);
 					break;
 
 				case "Invest Bond":
@@ -104,18 +141,47 @@ const createGreenBond = async (bond) => {
 								tx.bondId === bond.Id
 						);
 						console.log(transactions);
-						let emailsTo = ["custodian@gmail.com"];
+						let emailsTo = [];
+						const result = await getAllUser();
+
+						result.records.forEach((user) => {
+							if (user.data.role === 2) {
+								const profile = JSON.parse(user.data.profile);
+								const companyName = profile.companyName;
+								emailsTo.push({
+									companyName: companyName,
+									email: user.data.email,
+								});
+							}
+						});
+
 						for (let i = 0; i < transactions.length; i++) {
 							let tx = transactions[i];
 							const res = await getUser(tx.subscriberId);
-							emailsTo.push(res.data.email);
+							const profile = JSON.parse(res.data.profile);
+							const companyName = profile.companyName;
+							emailsTo.push({
+								companyName: companyName,
+								email: res.data.email,
+							});
 						}
-						emailsTo = [...new Set(emailsTo)];
+
+						// Filter unique emails
+						emailsTo = emailsTo.filter((value, index, array) => {
+							return (
+								array.findIndex(
+									(obj) =>
+										obj.companyName === value.companyName &&
+										obj.email === value.email
+								) === index
+							);
+						});
+
 						for (let i = 0; i < emailsTo.length; i++) {
-							let email = emailsTo[i];
 							await fullSubscription(
-								email,
-								[res.data.email, "admin@gmail.com"],
+								emailsTo[i].companyName,
+								emailsTo[i].email,
+								[res.data.email, ...admins],
 								bond.loan_name
 							);
 						}
@@ -126,9 +192,18 @@ const createGreenBond = async (bond) => {
 					const subscribersArray = await getSubscribersFromBondId(
 						bond.Id
 					);
+					let custodians = [];
+					const results = await getAllUser();
+
+					results.records.forEach((user) => {
+						if (user.data.role === 2) {
+							custodians.push(user.data.email);
+						}
+					});
 					await tokenizeBond(
+						companyName,
 						res.data.email,
-						[...subscribersArray, "custodian@gmail.com"],
+						[...subscribersArray, ...custodians],
 						bond.loan_name
 					);
 					break;
@@ -138,13 +213,19 @@ const createGreenBond = async (bond) => {
 						bond.Id
 					);
 					const todayDate = convertTimestampToDate(Date.now());
+					let custodianUsers = [];
+					const custodianResult = await getAllUser();
+
+					custodianResult.records.forEach((user) => {
+						if (user.data.role === 2) {
+							custodianUsers.push(user.data.email);
+						}
+					});
+
 					await matureBond(
+						companyName,
 						res.data.email,
-						[
-							...subscribersArr,
-							"custodian@gmail.com",
-							"admin@gmail.com",
-						],
+						[...subscribersArr, ...custodianUsers, ...admins],
 						bond.loan_name,
 						todayDate
 					);
