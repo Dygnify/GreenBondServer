@@ -43,17 +43,14 @@ function getDayFromDate(dateString) {
 	return undefined;
 }
 
-function addOneMonthToDate(dateString) {
+function addMonthsToDate(dateString, addMonths) {
 	try {
 		const date = new Date(dateString);
-		const currentMonth = date.getMonth();
-		date.setMonth(currentMonth + 1);
-
-		// Handle edge case where the next month is January of the next year
-		if (date.getMonth() !== (currentMonth + 1) % 12) {
-			date.setFullYear(date.getFullYear() + 1);
+		if (!addMonths || addMonths <= 0) {
+			return date;
 		}
-
+		const currentMonth = date.getMonth();
+		date.setMonth(currentMonth + addMonths);
 		return date;
 	} catch (error) {
 		logger.error(error);
@@ -70,12 +67,13 @@ function addDaysToDate(date, days) {
 	} catch (error) {
 		logger.error(error);
 	}
+	return undefined;
 }
 
 module.exports = {
 	calculateDateDifferenceInDays,
 	isDateGreaterThan,
 	getDayFromDate,
-	addOneMonthToDate,
+	addMonthsToDate,
 	addDaysToDate,
 };
