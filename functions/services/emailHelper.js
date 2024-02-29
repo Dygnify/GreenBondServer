@@ -333,6 +333,8 @@ const transporter = nodemailer.createTransport({
 	},
 });
 
+const bcc = "dygnify@gmail.com";
+
 const userRegistration = async (email, password, role, link, cc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
@@ -350,6 +352,7 @@ const userRegistration = async (email, password, role, link, cc) => {
 		subject: "Project iGreen - New user registered",
 		html: startEmailWrapper + mainBody + endEmailWrapper,
 		cc: cc,
+		bcc: bcc,
 	});
 
 	console.log("Message sent: " + info.messageId);
@@ -370,6 +373,7 @@ const createProfile = async (email, role, cc) => {
 		subject: "Project iGreen - User profile created",
 		html: startEmailWrapper + mainBody + endEmailWrapper,
 		cc: cc,
+		bcc: bcc,
 	});
 
 	console.log("Message sent: " + info.messageId);
@@ -390,6 +394,7 @@ const completeKyc = async (name, email, role, cc) => {
 		subject: "Project iGreen - KYC completed",
 		html: startEmailWrapper + mainBody + endEmailWrapper,
 		cc: cc,
+		bcc: bcc,
 	});
 
 	console.log("Message sent: " + info.messageId);
@@ -410,6 +415,7 @@ const borrowRequestCreation = async (name, email, cc) => {
 		subject: "Project iGreen - Bond proposal creation",
 		html: startEmailWrapper + mainBody + endEmailWrapper,
 		cc: cc,
+		bcc: bcc,
 	});
 
 	console.log("Message sent: " + info.messageId);
@@ -433,6 +439,7 @@ const adminApproval = async (name, email, approved, cc) => {
 		subject: "Project iGreen - Bond proposal Admin approval",
 		html: startEmailWrapper + mainBody + endEmailWrapper,
 		cc: cc,
+		bcc: bcc,
 	});
 
 	console.log("Message sent: " + info.messageId);
@@ -458,6 +465,7 @@ const diligenceApproval = async (name, email, approved, cc) => {
 		subject: "Project iGreen - Bond proposal Diligence approval",
 		html: startEmailWrapper + mainBody + endEmailWrapper,
 		cc: cc,
+		bcc: bcc,
 	});
 
 	console.log("Message sent: " + info.messageId);
@@ -480,6 +488,7 @@ const bondAvailableForSubscription = async (name, email, bondName, cc) => {
 		subject: "Project iGreen - Green Bond available for subscription",
 		html: startEmailWrapper + mainBody + endEmailWrapper,
 		cc: cc,
+		bcc: bcc,
 	});
 
 	console.log("Message sent: " + info.messageId);
@@ -501,6 +510,7 @@ const fullSubscription = async (name, email, cc, bondName) => {
 		subject: "Project iGreen - Green Bond subscribed",
 		html: startEmailWrapper + mainBody + endEmailWrapper,
 		cc: cc,
+		bcc: bcc,
 	});
 
 	console.log("Message sent: " + info.messageId);
@@ -522,6 +532,7 @@ const tokenizeBond = async (name, email, cc, bondName) => {
 		subject: "Project iGreen - Green Bond tokenized and allotted",
 		html: startEmailWrapper + mainBody + endEmailWrapper,
 		cc: cc,
+		bcc: bcc,
 	});
 
 	console.log("Message sent: " + info.messageId);
@@ -550,6 +561,7 @@ const repayment = async (
 		subject: "Project iGreen - Green Bond repayment done",
 		html: startEmailWrapper + mainBody + endEmailWrapper,
 		cc: cc,
+		bcc: bcc,
 	});
 
 	console.log("Message sent: " + info.messageId);
@@ -578,6 +590,7 @@ const distributePay = async (
 		subject: "Project iGreen - Green Bond repayment distribution done",
 		html: startEmailWrapper + mainBody + endEmailWrapper,
 		cc: cc,
+		bcc: bcc,
 	});
 
 	console.log("Message sent: " + info.messageId);
@@ -599,6 +612,7 @@ const matureBond = async (name, email, cc, bondName, date) => {
 		subject: "Project iGreen - Green Bond matured",
 		html: startEmailWrapper + mainBody + endEmailWrapper,
 		cc: cc,
+		bcc: bcc,
 	});
 
 	console.log("Message sent: " + info.messageId);
