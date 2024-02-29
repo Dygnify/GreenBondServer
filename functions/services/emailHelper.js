@@ -444,7 +444,9 @@ const diligenceApproval = async (name, email, approved, cc) => {
       <td class="wrapper">
       <p>Dear ${name},</p>
       <p>Your Green Bond request has been ${
-			approved ? "successfully approved" : "rejected"
+			approved
+				? "successfully approved by Diligence and is now open for subscription."
+				: "rejected by Diligence."
 		}.</p>
       <p>Thanks,<br/>Team Project iGreen</p>  
       </td>
