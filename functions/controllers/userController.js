@@ -28,9 +28,11 @@ const createUser = async (req, res) => {
 		if (result.Id) {
 			return res.status(201).json(result.Id);
 		} else {
+			await deleteUserInFirebase(req.body.email);
 			return res.status(result.code).json(result.res);
 		}
 	} catch (error) {
+		await deleteUserInFirebase(req.body.email);
 		logger.error(error);
 	}
 	res.status(400).send("Invalid request");
@@ -128,12 +130,7 @@ const deleteUserAccount = async (req, res) => {
 		}
 		const result = await deleteUser(req.body.email, req.body.role);
 		if (result.success) {
-			const auth = getFirebaseAdminAuth();
-			// Get user record from firebase
-			const userRecord = await auth.getUserByEmail(req.body.email);
-			// Delete the user
-			console.log("userRecord", userRecord);
-			await auth.deleteUser(userRecord.uid);
+			await deleteUserInFirebase(req.body.email);
 			return res.json({
 				success: true,
 				message: "Successfully deleted User",
@@ -148,6 +145,15 @@ const deleteUserAccount = async (req, res) => {
 		logger.error(error);
 	}
 	res.status(400).json("Invalid request");
+};
+
+const deleteUserInFirebase = async (email) => {
+	const auth = getFirebaseAdminAuth();
+	// Get user record from firebase
+	const userRecord = await auth.getUserByEmail(email);
+	// Delete the user
+	console.log("userRecord", userRecord);
+	await auth.deleteUser(userRecord.uid);
 };
 
 module.exports = {
