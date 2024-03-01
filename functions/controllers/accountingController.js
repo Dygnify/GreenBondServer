@@ -562,7 +562,7 @@ function generateBulletLoanCashflows(
 			paymentFrequencyInDays <= 0 ||
 			investorUpfrontFeePercentage == undefined ||
 			investorUpfrontFeePercentage < 0 ||
-			getDayFromDate(disbursementDate) > 28 ||
+			getDayFromDate(disbursementDate) > 30 ||
 			platformFeePercentage == undefined ||
 			platformFeePercentage < 0 ||
 			juniorTranchFeePercentage == undefined ||

@@ -5,7 +5,7 @@ function calculateDateDifferenceInDays(date1, date2) {
 	try {
 		const firstDate = new Date(date1);
 		const secondDate = new Date(date2);
-		const diffDays = Math.round(
+		const diffDays = Math.floor(
 			Math.abs((firstDate - secondDate) / oneDay)
 		);
 		return diffDays;
