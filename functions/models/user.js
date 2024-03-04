@@ -8,6 +8,7 @@ const User = Joi.object({
 	role: Joi.number().required(),
 	kycStatus: Joi.bool(),
 	action: Joi.string(),
+	isNewUser: Joi.bool(),
 });
 
 module.exports = User;

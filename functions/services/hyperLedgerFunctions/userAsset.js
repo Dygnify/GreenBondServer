@@ -106,6 +106,7 @@ const getUserWithEmailOption = (email, role) => {
               profile,
               role,
 			  kycStatus, 
+			  isNewUser
               ledgerMetadata{
                 owners
               }
