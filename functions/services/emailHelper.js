@@ -346,16 +346,13 @@ const userRegistration = async (email, password, role, link, cc) => {
       </td>
     </tr>`;
 
-	const info = await transporter.sendMail({
-		from: "Dygnify Ventures <hello@dygnify.com>",
-		to: email,
-		subject: "Project iGreen - New user registered",
-		html: startEmailWrapper + mainBody + endEmailWrapper,
-		cc: cc,
-		bcc: bcc,
-	});
-
-	console.log("Message sent: " + info.messageId);
+	await sendEmail(
+		email,
+		"Project iGreen - New user registered",
+		mainBody,
+		cc,
+		bcc
+	);
 };
 const createProfile = async (email, role, cc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
@@ -367,16 +364,13 @@ const createProfile = async (email, role, cc) => {
       </td>
     </tr>`;
 
-	const info = await transporter.sendMail({
-		from: "Dygnify Ventures <hello@dygnify.com>",
-		to: email,
-		subject: "Project iGreen - User profile created",
-		html: startEmailWrapper + mainBody + endEmailWrapper,
-		cc: cc,
-		bcc: bcc,
-	});
-
-	console.log("Message sent: " + info.messageId);
+	await sendEmail(
+		email,
+		"Project iGreen - User profile created",
+		mainBody,
+		cc,
+		bcc
+	);
 };
 const completeKyc = async (name, email, role, cc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
@@ -388,16 +382,7 @@ const completeKyc = async (name, email, role, cc) => {
       </td>
     </tr>`;
 
-	const info = await transporter.sendMail({
-		from: "Dygnify Ventures <hello@dygnify.com>",
-		to: email,
-		subject: "Project iGreen - KYC completed",
-		html: startEmailWrapper + mainBody + endEmailWrapper,
-		cc: cc,
-		bcc: bcc,
-	});
-
-	console.log("Message sent: " + info.messageId);
+	await sendEmail(email, "Project iGreen - KYC completed", mainBody, cc, bcc);
 };
 const borrowRequestCreation = async (name, email, cc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
@@ -409,16 +394,13 @@ const borrowRequestCreation = async (name, email, cc) => {
       </td>
     </tr>`;
 
-	const info = await transporter.sendMail({
-		from: "Dygnify Ventures <hello@dygnify.com>",
-		to: email,
-		subject: "Project iGreen - Bond proposal creation",
-		html: startEmailWrapper + mainBody + endEmailWrapper,
-		cc: cc,
-		bcc: bcc,
-	});
-
-	console.log("Message sent: " + info.messageId);
+	await sendEmail(
+		email,
+		"Project iGreen - Bond proposal creation",
+		mainBody,
+		cc,
+		bcc
+	);
 };
 
 const adminApproval = async (name, email, approved, cc) => {
@@ -433,16 +415,13 @@ const adminApproval = async (name, email, approved, cc) => {
       </td>
     </tr>`;
 
-	const info = await transporter.sendMail({
-		from: "Dygnify Ventures <hello@dygnify.com>",
-		to: email,
-		subject: "Project iGreen - Bond proposal Admin approval",
-		html: startEmailWrapper + mainBody + endEmailWrapper,
-		cc: cc,
-		bcc: bcc,
-	});
-
-	console.log("Message sent: " + info.messageId);
+	await sendEmail(
+		email,
+		"Project iGreen - Bond proposal Admin approval",
+		mainBody,
+		cc,
+		bcc
+	);
 };
 
 const diligenceApproval = async (name, email, approved, cc) => {
@@ -459,16 +438,13 @@ const diligenceApproval = async (name, email, approved, cc) => {
       </td>
     </tr>`;
 
-	const info = await transporter.sendMail({
-		from: "Dygnify Ventures <hello@dygnify.com>",
-		to: email,
-		subject: "Project iGreen - Bond proposal Diligence approval",
-		html: startEmailWrapper + mainBody + endEmailWrapper,
-		cc: cc,
-		bcc: bcc,
-	});
-
-	console.log("Message sent: " + info.messageId);
+	await sendEmail(
+		email,
+		"Project iGreen - Bond proposal Diligence approval",
+		mainBody,
+		cc,
+		bcc
+	);
 };
 
 const bondAvailableForSubscription = async (name, email, bondName, cc) => {
@@ -482,16 +458,13 @@ const bondAvailableForSubscription = async (name, email, bondName, cc) => {
       </td>
     </tr>`;
 
-	const info = await transporter.sendMail({
-		from: "Dygnify Ventures <hello@dygnify.com>",
-		to: email,
-		subject: "Project iGreen - Green Bond available for subscription",
-		html: startEmailWrapper + mainBody + endEmailWrapper,
-		cc: cc,
-		bcc: bcc,
-	});
-
-	console.log("Message sent: " + info.messageId);
+	await sendEmail(
+		email,
+		"Project iGreen - Green Bond available for subscription",
+		mainBody,
+		cc,
+		bcc
+	);
 };
 
 const fullSubscription = async (name, email, cc, bondName) => {
@@ -504,16 +477,13 @@ const fullSubscription = async (name, email, cc, bondName) => {
       </td>
     </tr>`;
 
-	const info = await transporter.sendMail({
-		from: "Dygnify Ventures <hello@dygnify.com>",
-		to: email,
-		subject: "Project iGreen - Green Bond subscribed",
-		html: startEmailWrapper + mainBody + endEmailWrapper,
-		cc: cc,
-		bcc: bcc,
-	});
-
-	console.log("Message sent: " + info.messageId);
+	await sendEmail(
+		email,
+		"Project iGreen - Green Bond subscribed",
+		mainBody,
+		cc,
+		bcc
+	);
 };
 
 const tokenizeBond = async (name, email, cc, bondName) => {
@@ -526,16 +496,13 @@ const tokenizeBond = async (name, email, cc, bondName) => {
       </td>
     </tr>`;
 
-	const info = await transporter.sendMail({
-		from: "Dygnify Ventures <hello@dygnify.com>",
-		to: email,
-		subject: "Project iGreen - Green Bond tokenized and allotted",
-		html: startEmailWrapper + mainBody + endEmailWrapper,
-		cc: cc,
-		bcc: bcc,
-	});
-
-	console.log("Message sent: " + info.messageId);
+	await sendEmail(
+		email,
+		"Project iGreen - Green Bond tokenized and allotted",
+		mainBody,
+		cc,
+		bcc
+	);
 };
 
 const repayment = async (
@@ -555,16 +522,13 @@ const repayment = async (
       </td>
     </tr>`;
 
-	const info = await transporter.sendMail({
-		from: "Dygnify Ventures <hello@dygnify.com>",
-		to: email,
-		subject: "Project iGreen - Green Bond repayment done",
-		html: startEmailWrapper + mainBody + endEmailWrapper,
-		cc: cc,
-		bcc: bcc,
-	});
-
-	console.log("Message sent: " + info.messageId);
+	await sendEmail(
+		email,
+		"Project iGreen - Green Bond repayment done",
+		mainBody,
+		cc,
+		bcc
+	);
 };
 
 const distributePay = async (
@@ -584,16 +548,13 @@ const distributePay = async (
       </td>
     </tr>`;
 
-	const info = await transporter.sendMail({
-		from: "Dygnify Ventures <hello@dygnify.com>",
-		to: email,
-		subject: "Project iGreen - Green Bond repayment distribution done",
-		html: startEmailWrapper + mainBody + endEmailWrapper,
-		cc: cc,
-		bcc: bcc,
-	});
-
-	console.log("Message sent: " + info.messageId);
+	await sendEmail(
+		email,
+		"Project iGreen - Green Bond repayment distribution done",
+		mainBody,
+		cc,
+		bcc
+	);
 };
 
 const matureBond = async (name, email, cc, bondName, date) => {
@@ -606,16 +567,29 @@ const matureBond = async (name, email, cc, bondName, date) => {
       </td>
     </tr>`;
 
-	const info = await transporter.sendMail({
-		from: "Dygnify Ventures <hello@dygnify.com>",
-		to: email,
-		subject: "Project iGreen - Green Bond matured",
-		html: startEmailWrapper + mainBody + endEmailWrapper,
-		cc: cc,
-		bcc: bcc,
-	});
+	await sendEmail(
+		email,
+		"Project iGreen - Green Bond matured",
+		mainBody,
+		cc,
+		bcc
+	);
+};
 
-	console.log("Message sent: " + info.messageId);
+const sendEmail = async (to, subject, mainBody, cc = "", bcc = "") => {
+	try {
+		const info = await transporter.sendMail({
+			from: "Dygnify Ventures <hello@dygnify.com>",
+			to: to,
+			subject: subject,
+			html: startEmailWrapper + mainBody + endEmailWrapper,
+			cc: cc,
+			bcc: bcc,
+		});
+		console.log("Message sent: " + info.messageId);
+	} catch (error) {
+		console.log("Message failed");
+	}
 };
 
 module.exports = {
