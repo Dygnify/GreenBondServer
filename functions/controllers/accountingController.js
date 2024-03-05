@@ -18,6 +18,7 @@ const getLoanEMI = async (req, res) => {
 			return res.status(400).send("Invalid data");
 		}
 
+		logger.info("Loan data received: ", req.body);
 		const { error } = Loan.validate(req.body);
 		if (error) {
 			return res.status(400).send(error.details);

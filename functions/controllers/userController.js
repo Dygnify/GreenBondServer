@@ -11,6 +11,7 @@ const { getFirebaseAdminAuth } = require("../firebaseInit");
 
 // Create post
 const createUser = async (req, res) => {
+	logger.info("createUser execution started");
 	try {
 		// validate the body
 		if (!req.body) {
@@ -18,16 +19,22 @@ const createUser = async (req, res) => {
 			response.status(400).send("Invalid data");
 		}
 
+		logger.info("User data received: ", req.body);
 		const { error } = User.validate(req.body);
 		if (error) {
+			logger.error("User validation failed: ", error);
 			return res.status(400).send(error.details);
 		}
 
 		// store in hyperledger
 		var result = await createNewUser(req.body);
 		if (result.Id) {
+			logger.info("User successfuly created with id: ", result.Id);
 			return res.status(201).json(result.Id);
 		} else {
+			logger.error(
+				"Failed to create user in spydra, proceed with deletion of user in firebase."
+			);
 			await deleteUserInFirebase(req.body.email);
 			return res.status(result.code).json(result.res);
 		}
@@ -40,19 +47,25 @@ const createUser = async (req, res) => {
 
 // Get list of users
 const getUsers = async (req, res) => {
+	logger.info("getUser execution started");
 	try {
 		if (!req.body) {
-			logger.error("Invalid request data");
+			logger.error("Request body not available");
 			response.status(400).send("Invalid data");
 		}
 		let result;
 		if (req.body.Id) {
+			logger.info("Get user with id called, for id: ", req.body.Id);
 			result = await getUser(req.body.Id);
 		} else {
+			logger.info(
+				`Get user with email called, with param email: ${req.body.email} and role: ${req.body.role}`
+			);
 			result = await getUserWithEmail(req.body.email, req.body.role);
 		}
 
 		if (result) {
+			logger.info("User found: ", result);
 			return res.status(200).json(result);
 		}
 	} catch (error) {
