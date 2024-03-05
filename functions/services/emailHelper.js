@@ -354,6 +354,26 @@ const userRegistration = async (email, password, role, link, cc) => {
 		bcc
 	);
 };
+
+const passwordChanged = async (email, link, cc) => {
+	const mainBody = `<!-- START MAIN CONTENT AREA -->
+    <tr>
+      <td class="wrapper">
+      <p>Dear ${email},</p>
+      <p>Your password has been changed successfuly.
+      Please login to the platform using the <a href="${link}">link</a>.</p>
+      <p>Thanks,<br/>Team Project iGreen</p>  
+      </td>
+    </tr>`;
+
+	await sendEmail(
+		email,
+		"Project iGreen - New user registered",
+		mainBody,
+		cc,
+		bcc
+	);
+};
 const createProfile = async (email, role, cc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
@@ -589,11 +609,13 @@ const sendEmail = async (to, subject, mainBody, cc = "", bcc = "") => {
 		console.log("Message sent: " + info.messageId);
 	} catch (error) {
 		console.log("Message failed");
+		console.log(error);
 	}
 };
 
 module.exports = {
 	userRegistration,
+	passwordChanged,
 	createProfile,
 	completeKyc,
 	borrowRequestCreation,

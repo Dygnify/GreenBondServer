@@ -4,6 +4,7 @@ const {
 	userRegistration,
 	createProfile,
 	completeKyc,
+	passwordChanged,
 } = require("../emailHelper");
 
 const Role = [
@@ -87,6 +88,12 @@ const createNewUser = async (user) => {
 			const profile = JSON.parse(user.profile);
 			const companyName = profile.companyName;
 			await completeKyc(companyName, user.email, Role[user.role], admins);
+		} else if (action === "PasswordChange") {
+			await passwordChanged(
+				user.email,
+				"https://green-bond-app.vercel.app",
+				admins
+			);
 		}
 		return { Id: data.Id, ...result.res };
 	}
@@ -106,6 +113,7 @@ const getUserWithEmailOption = (email, role) => {
               profile,
               role,
 			  kycStatus, 
+			  isNewUser
               ledgerMetadata{
                 owners
               }
