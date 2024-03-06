@@ -605,6 +605,26 @@ const matureBond = async (name, email, cc, bondName, date) => {
 	);
 };
 
+const resetPasswordMail = async (name, link, email, password, cc) => {
+	const mainBody = `<!-- START MAIN CONTENT AREA -->
+    <tr>
+      <td class="wrapper">
+      <p>Dear ${name},</p>
+      <p>Your password has been successfully reset for Project iGreen.
+      Please login to the platform using the <a href="${link}">link</a> and the email ${email} and temporary password ${password} and change with your new password.</p>
+      <p>Thanks,<br/>Team Project iGreen</p> 
+      </td>
+    </tr>`;
+
+	await sendEmail(
+		email,
+		"Project iGreen - Password reset successfull",
+		mainBody,
+		cc,
+		bcc
+	);
+};
+
 const sendEmail = async (to, subject, mainBody, cc = "", bcc = "") => {
 	try {
 		const info = await transporter.sendMail({
@@ -636,4 +656,5 @@ module.exports = {
 	repayment,
 	distributePay,
 	matureBond,
+	resetPasswordMail,
 };

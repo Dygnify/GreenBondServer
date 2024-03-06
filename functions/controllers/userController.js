@@ -5,6 +5,7 @@ const {
 	getUser,
 	getAllUser,
 	deleteUser,
+	forgotPassword,
 } = require("../services/hyperLedgerFunctions/userAsset");
 const User = require("../models/user");
 const { getFirebaseAdminAuth } = require("../firebaseInit");
@@ -160,6 +161,29 @@ const deleteUserAccount = async (req, res) => {
 	res.status(400).json("Invalid request");
 };
 
+const forgotUserPassword = async (req, res) => {
+	try {
+		if (!req.body.email) {
+			return res.status(400).json("Invalid request");
+		}
+		const result = await forgotPassword(req.body.email);
+		if (result.success) {
+			return res.json({
+				...result,
+				message: "Password reset successfull",
+			});
+		} else {
+			res.status(400).json({
+				success: false,
+				message: "Failed to reset password",
+			});
+		}
+	} catch (error) {
+		logger.error(error);
+	}
+	res.status(400).json("Invalid request");
+};
+
 const deleteUserInFirebase = async (email) => {
 	const auth = getFirebaseAdminAuth();
 	// Get user record from firebase
@@ -176,4 +200,5 @@ module.exports = {
 	getUserAccountStatus,
 	enableDisableUserAccount,
 	deleteUserAccount,
+	forgotUserPassword,
 };

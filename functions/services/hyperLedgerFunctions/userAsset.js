@@ -5,7 +5,10 @@ const {
 	createProfile,
 	completeKyc,
 	passwordChanged,
+	resetPasswordMail,
 } = require("../emailHelper");
+const crypto = require("crypto");
+const { getFirebaseAdminAuth } = require("../../firebaseInit");
 
 const Role = [
 	"Subscriber",
@@ -251,10 +254,103 @@ const deleteUser = async (email, role) => {
 	}
 };
 
+const forgotPassword = async (email) => {
+	try {
+		if (!email) {
+			return;
+		}
+
+		// Get Id of user
+		let data = JSON.stringify({
+			query: `{
+			  User(email: "${email}"){
+				  Id,
+				  email,
+				  profile,
+				  role,
+				  kycStatus, 
+				  isNewUser
+		  }}`,
+		});
+
+		let options = {
+			method: "post",
+			maxBodyLength: Infinity,
+			url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/graphql`,
+			headers: {
+				"X-API-KEY": process.env.SPYDRA_API_KEY,
+				"Content-Type": "application/json",
+			},
+			data: data,
+		};
+
+		let userResult = await axiosHttpService(options);
+		let user = userResult.res.data.User[0];
+		console.log(user);
+		if (userResult.code !== 200) {
+			return { success: false };
+		}
+
+		// Generate temporary password
+		const temporaryPassword = generateSecurePassword(10);
+		console.log("pass", temporaryPassword);
+
+		// Change password
+		const auth = getFirebaseAdminAuth();
+		const userRecord = await auth.getUserByEmail(email);
+		await auth.updateUser(userRecord.uid, {
+			password: temporaryPassword,
+		});
+
+		// Get profile name
+		const profile = JSON.parse(user.profile);
+		const companyName = profile?.companyName;
+
+		// Send Email with temporary password
+		await resetPasswordMail(
+			companyName ? companyName : user.email,
+			user.email,
+			"https://green-bond-app.vercel.app",
+			temporaryPassword
+		);
+		// Update backend to show change password when user login
+		user.isNewUser = true;
+		const result = await createNewUser(user);
+		console.log(result);
+		if (!result.Id) {
+			return { success: false };
+		}
+		return { success: true };
+	} catch (error) {
+		logger.error(error);
+		return { success: false };
+	}
+};
+
+function generateSecurePassword(length) {
+	// Define the character pool for the password
+	const characterPool =
+		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()";
+
+	// Initialize an empty password string
+	let password = "";
+
+	// Generate random characters from the pool
+	for (let i = 0; i < length; i++) {
+		// Use `crypto.randomInt` to generate cryptographically secure random number as charset index
+		const charsetLength = characterPool.length;
+		const randomIndex = crypto.randomInt(charsetLength);
+		password += characterPool[randomIndex];
+	}
+
+	return password;
+}
+
 module.exports = {
 	createNewUser,
 	getUserWithEmail,
 	getUser,
 	getAllUser,
 	deleteUser,
+	forgotPassword,
 };
