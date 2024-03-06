@@ -353,8 +353,8 @@ const forgotPassword = async (email) => {
 		// Send Email with temporary password
 		await resetPasswordMail(
 			companyName ? companyName : user.email,
-			user.email,
 			process.env.DEPLOYED_APP_URL,
+			user.email,
 			temporaryPassword
 		);
 		// Update backend to show change password when user login
