@@ -103,7 +103,7 @@ const createNewUser = async (user) => {
 	return result;
 };
 
-const getUserWithEmailOption = (email, role) => {
+const getUserWithEmailAndRoleOption = (email, role) => {
 	if (!email || role === undefined) {
 		return;
 	}
@@ -135,15 +135,59 @@ const getUserWithEmailOption = (email, role) => {
 	};
 };
 
-const getUserWithEmail = async (email, role) => {
+const getUserWithEmailAndRole = async (email, role) => {
 	logger.log(email, role);
 	if (!email || role === undefined) {
 		return;
 	}
 	try {
 		let result = await axiosHttpService(
-			getUserWithEmailOption(email, role)
+			getUserWithEmailAndRoleOption(email, role)
 		);
+		if (result.code === 200) {
+			return result.res.data.User;
+		}
+		return;
+	} catch (error) {
+		logger.error(error);
+	}
+};
+const getUserWithEmailOption = (email) => {
+	if (!email) {
+		return;
+	}
+	logger.log(email);
+	let data = JSON.stringify({
+		query: `{
+          User(email: "${email}"){
+              Id,
+              email,
+              profile,
+              role,
+			  kycStatus, 
+			  isNewUser
+      }}`,
+	});
+
+	return {
+		method: "post",
+		maxBodyLength: Infinity,
+		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/graphql`,
+		headers: {
+			"X-API-KEY": process.env.SPYDRA_API_KEY,
+			"Content-Type": "application/json",
+		},
+		data: data,
+	};
+};
+
+const getUserWithEmail = async (email) => {
+	logger.log(email);
+	if (!email) {
+		return;
+	}
+	try {
+		let result = await axiosHttpService(getUserWithEmailOption(email));
 		if (result.code === 200) {
 			return result.res.data.User;
 		}
@@ -240,7 +284,7 @@ const deleteUser = async (email, role) => {
 		if (!email || role === undefined) {
 			return;
 		}
-		let userResult = await getUserWithEmail(email, role);
+		let userResult = await getUserWithEmailAndRole(email, role);
 		result = await axiosHttpService(
 			deleteUserOption(email, role, userResult[0].Id)
 		);
@@ -348,6 +392,7 @@ function generateSecurePassword(length) {
 
 module.exports = {
 	createNewUser,
+	getUserWithEmailAndRole,
 	getUserWithEmail,
 	getUser,
 	getAllUser,

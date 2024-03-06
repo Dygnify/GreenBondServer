@@ -1,6 +1,7 @@
 const { logger } = require("firebase-functions/v1");
 const {
 	createNewUser,
+	getUserWithEmailAndRole,
 	getUserWithEmail,
 	getUser,
 	getAllUser,
@@ -58,11 +59,19 @@ const getUsers = async (req, res) => {
 		if (req.body.Id) {
 			logger.info("Get user with id called, for id: ", req.body.Id);
 			result = await getUser(req.body.Id);
-		} else {
+		} else if (req.body.role) {
 			logger.info(
 				`Get user with email called, with param email: ${req.body.email} and role: ${req.body.role}`
 			);
-			result = await getUserWithEmail(req.body.email, req.body.role);
+			result = await getUserWithEmailAndRole(
+				req.body.email,
+				req.body.role
+			);
+		} else {
+			logger.info(
+				`Get user with email called, with param email: ${req.body.email}`
+			);
+			result = await getUserWithEmail(req.body.email);
 		}
 
 		if (result) {
