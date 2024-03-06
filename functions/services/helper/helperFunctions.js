@@ -17,7 +17,25 @@ function convertTimestampToDate(timestamp) {
 	return day + "/" + month + "/" + year; // returns the date in DD/MM/YYYY format
 }
 
+function formatCurrency(number) {
+	var fNum = parseFloat(number).toFixed(2);
+	// Convert number to string
+	let numStr = String(fNum);
+
+	// Split the string into integer and decimal parts
+	let parts = numStr.split(".");
+	let integerPart = parts[0];
+	let decimalPart = parts.length > 1 ? "." + parts[1] : "";
+
+	// Add commas to the integer part
+	let integerWithCommas = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+	// Concatenate integer and decimal parts
+	return integerWithCommas + decimalPart;
+}
+
 module.exports = {
 	getGUID,
 	convertTimestampToDate,
+	formatCurrency,
 };

@@ -1,4 +1,5 @@
 const nodemailer = require("nodemailer");
+const { formatCurrency } = require("./helper/helperFunctions");
 
 const startEmailWrapper = `<!doctype html>
 <html lang="en">
@@ -537,7 +538,11 @@ const repayment = async (
     <tr>
       <td class="wrapper">
       <p>Dear ${name},</p>
-      <p>The Green bond ${bondName} repayment of ${dueAmount} has been done on ${repaymentDate}. Kindly distribute repayment funds to subscribers.</p>
+      <p>The Green bond ${bondName} repayment of ${
+		process.env.CURRENCY_SYMBOL
+	}${formatCurrency(
+		dueAmount
+	)} has been done on ${repaymentDate}. Kindly distribute repayment funds to subscribers.</p>
       <p>Thanks,<br/>Team Project iGreen</p>  
       </td>
     </tr>`;
@@ -563,7 +568,11 @@ const distributePay = async (
     <tr>
       <td class="wrapper">
       <p>Dear ${name},</p>
-      <p>The Green bond ${bondName} repayment of ${dueAmount} has been distributed on ${repaymentDate}. Kindly check your dashboard for details.</p>
+      <p>The Green bond ${bondName} repayment of ${
+		process.env.CURRENCY_SYMBOL
+	}${formatCurrency(
+		dueAmount
+	)} has been distributed on ${repaymentDate}. Kindly check your dashboard for details.</p>
       <p>Thanks,<br/>Team Project iGreen</p>  
       </td>
     </tr>`;
