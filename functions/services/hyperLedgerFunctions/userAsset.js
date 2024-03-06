@@ -82,7 +82,7 @@ const createNewUser = async (user) => {
 				user.email,
 				user.password,
 				Role[user.role],
-				"https://green-bond-app.vercel.app",
+				process.env.DEPLOYED_APP_URL,
 				admins
 			);
 		} else if (action === "ProfileCreation") {
@@ -94,7 +94,7 @@ const createNewUser = async (user) => {
 		} else if (action === "PasswordChange") {
 			await passwordChanged(
 				user.email,
-				"https://green-bond-app.vercel.app",
+				process.env.DEPLOYED_APP_URL,
 				admins
 			);
 		}
@@ -310,7 +310,7 @@ const forgotPassword = async (email) => {
 		await resetPasswordMail(
 			companyName ? companyName : user.email,
 			user.email,
-			"https://green-bond-app.vercel.app",
+			process.env.DEPLOYED_APP_URL,
 			temporaryPassword
 		);
 		// Update backend to show change password when user login
