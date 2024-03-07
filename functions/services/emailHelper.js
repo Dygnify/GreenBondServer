@@ -53,6 +53,7 @@ const startEmailWrapper = `<!doctype html>
       max-width: 600px;
       padding: 0;
       padding-top: 24px;
+      padding-bottom: 24px;
       width: 600px;
     }
     
@@ -393,6 +394,25 @@ const createProfile = async (email, role, cc) => {
 		bcc
 	);
 };
+
+const updateProfile = async (name, email, role, cc) => {
+	const mainBody = `<!-- START MAIN CONTENT AREA -->
+    <tr>
+      <td class="wrapper">
+      <p>Dear ${name},</p>
+      <p>You have successfully updated your profile for your role as ${role} for Project iGreen.</p>
+      <p>Thanks,<br/>Team Project iGreen</p>  
+      </td>
+    </tr>`;
+
+	await sendEmail(
+		email,
+		"Project iGreen - User profile updated",
+		mainBody,
+		cc,
+		bcc
+	);
+};
 const completeKyc = async (name, email, role, cc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
@@ -657,4 +677,5 @@ module.exports = {
 	distributePay,
 	matureBond,
 	resetPasswordMail,
+	updateProfile,
 };

@@ -6,6 +6,7 @@ const {
 	completeKyc,
 	passwordChanged,
 	resetPasswordMail,
+	updateProfile,
 } = require("../emailHelper");
 const crypto = require("crypto");
 const { getFirebaseAdminAuth } = require("../../firebaseInit");
@@ -87,6 +88,15 @@ const createNewUser = async (user) => {
 			);
 		} else if (action === "ProfileCreation") {
 			await createProfile(user.email, Role[user.role], admins);
+		} else if (action === "ProfileUpdate") {
+			const profile = JSON.parse(user.profile);
+			const companyName = profile?.companyName;
+			await updateProfile(
+				companyName ? companyName : "User",
+				user.email,
+				Role[user.role],
+				admins
+			);
 		} else if (action === "kyc") {
 			const profile = JSON.parse(user.profile);
 			const companyName = profile.companyName;
