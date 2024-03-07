@@ -630,7 +630,7 @@ const sendEmail = async (to, subject, mainBody, cc = "", bcc = "") => {
 		const info = await transporter.sendMail({
 			from: "Dygnify Ventures <hello@dygnify.com>",
 			to: to,
-			subject: subject,
+			subject: process.env.EMAIL_PREFIX + subject,
 			html: startEmailWrapper + mainBody + endEmailWrapper,
 			cc: cc,
 			bcc: bcc,

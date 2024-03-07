@@ -49,8 +49,12 @@ function addMonthsToDate(dateString, addMonths) {
 		if (!addMonths || addMonths <= 0) {
 			return date;
 		}
-		const currentMonth = date.getMonth();
-		date.setMonth(currentMonth + addMonths);
+		if (addMonths < 1) {
+			date.setDate(date.getDate() + addMonths * 30);
+		} else {
+			const currentMonth = date.getMonth();
+			date.setMonth(currentMonth + addMonths);
+		}
 		return date;
 	} catch (error) {
 		logger.error(error);
