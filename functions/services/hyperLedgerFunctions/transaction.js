@@ -77,7 +77,9 @@ const createTx = async (transaction) => {
 				});
 				for (let i = 0; i < custodians.length; i++) {
 					await repayment(
-						custodians[i].companyName,
+						custodians[i].companyName
+							? custodians[i].companyName
+							: "User",
 						custodians[i].email,
 						[res.data.email, ...admins],
 						transaction.bondName,
@@ -98,7 +100,7 @@ const createTx = async (transaction) => {
 					}
 				});
 				await distributePay(
-					companyName,
+					companyName ? companyName : "User",
 					res.data.email,
 					[...custodians, ...admins],
 					transaction.bondName,
