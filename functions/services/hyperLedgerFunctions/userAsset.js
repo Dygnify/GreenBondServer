@@ -80,6 +80,7 @@ const createNewUser = async (user) => {
 
 		if (!user.Id) {
 			await userRegistration(
+				"User",
 				user.email,
 				user.password,
 				Role[user.role],
@@ -87,7 +88,7 @@ const createNewUser = async (user) => {
 				admins
 			);
 		} else if (action === "ProfileCreation") {
-			await createProfile(user.email, Role[user.role], admins);
+			await createProfile("User", user.email, Role[user.role], admins);
 		} else if (action === "ProfileUpdate") {
 			const profile = JSON.parse(user.profile);
 			const companyName = profile?.companyName;
@@ -100,9 +101,17 @@ const createNewUser = async (user) => {
 		} else if (action === "kyc") {
 			const profile = JSON.parse(user.profile);
 			const companyName = profile.companyName;
-			await completeKyc(companyName, user.email, Role[user.role], admins);
+			await completeKyc(
+				companyName ? companyName : "User",
+				user.email,
+				Role[user.role],
+				admins
+			);
 		} else if (action === "PasswordChange") {
+			const profile = JSON.parse(user.profile);
+			const companyName = profile.companyName;
 			await passwordChanged(
+				companyName ? companyName : "User",
 				user.email,
 				process.env.DEPLOYED_APP_URL,
 				admins
@@ -362,7 +371,7 @@ const forgotPassword = async (email) => {
 
 		// Send Email with temporary password
 		await resetPasswordMail(
-			companyName ? companyName : user.email,
+			companyName ? companyName : "User",
 			process.env.DEPLOYED_APP_URL,
 			user.email,
 			temporaryPassword

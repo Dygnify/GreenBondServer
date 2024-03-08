@@ -337,11 +337,11 @@ const transporter = nodemailer.createTransport({
 
 const bcc = "dygnify@gmail.com";
 
-const userRegistration = async (email, password, role, link, cc) => {
+const userRegistration = async (name, email, password, role, link, cc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
-      <p>Dear ${email},</p>
+      <p>Dear ${name},</p>
       <p>You have been successfully registered as a ${role} for Project iGreen.
       Please login to the platform using the <a href="${link}">link</a> and the email ${email} and password ${password}.</p>
       <p>Thanks,<br/>Team Project iGreen</p>  
@@ -357,11 +357,11 @@ const userRegistration = async (email, password, role, link, cc) => {
 	);
 };
 
-const passwordChanged = async (email, link, cc) => {
+const passwordChanged = async (name, email, link, cc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
-      <p>Dear ${email},</p>
+      <p>Dear ${name},</p>
       <p>Your password has been changed successfuly.
       Please login to the platform using the <a href="${link}">link</a>.</p>
       <p>Thanks,<br/>Team Project iGreen</p>  
@@ -376,11 +376,11 @@ const passwordChanged = async (email, link, cc) => {
 		bcc
 	);
 };
-const createProfile = async (email, role, cc) => {
+const createProfile = async (name, email, role, cc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
-      <p>Dear ${email},</p>
+      <p>Dear ${name},</p>
       <p>You have successfully created your profile for your role as ${role} for Project iGreen.</p>
       <p>Thanks,<br/>Team Project iGreen</p>  
       </td>
