@@ -1,7 +1,5 @@
 const express = require("express");
 const functions = require("firebase-functions");
-const { onRequest } = require("firebase-functions/v2/https");
-const logger = require("firebase-functions/logger");
 const { initializeFirebaseApp } = require("./firebaseInit");
 const userRoutes = require("./routes/userRoutes");
 const bondRoutes = require("./routes/bondRoutes");
@@ -14,15 +12,18 @@ const cors = require("cors");
 const {
 	sendDueDateReminderMail,
 } = require("./controllers/tokenizedBondController");
+const { verifyToken } = require("./middleware/authVerification");
 
 initializeFirebaseApp();
 
 app.use(express.json());
 app.use(
 	cors({
-		allowedHeaders: ["Content-Type"],
+		origin: process.env.DEPLOYED_APP_URL,
+		allowedHeaders: ["Content-Type", "Authorization"],
 	})
 );
+app.use(verifyToken);
 app.use("/borrower", userRoutes);
 app.use("/bond", bondRoutes);
 app.use("/transaction", transactionRoutes);
