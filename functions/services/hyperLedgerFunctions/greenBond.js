@@ -77,12 +77,16 @@ const createGreenBond = async (bond) => {
 		});
 
 		if (!bond.Id) {
-			await borrowRequestCreation(companyName, res.data.email, admins);
+			await borrowRequestCreation(
+				companyName ? companyName : "User",
+				res.data.email,
+				admins
+			);
 		} else {
 			switch (action) {
 				case "Admin Approved":
 					await adminApproval(
-						companyName,
+						companyName ? companyName : "User",
 						res.data.email,
 						true,
 						admins
@@ -90,7 +94,7 @@ const createGreenBond = async (bond) => {
 					break;
 				case "Admin Rejected":
 					await adminApproval(
-						companyName,
+						companyName ? companyName : "User",
 						res.data.email,
 						false,
 						admins
@@ -98,7 +102,7 @@ const createGreenBond = async (bond) => {
 					break;
 				case "Diligence Approved":
 					await diligenceApproval(
-						companyName,
+						companyName ? companyName : "User",
 						res.data.email,
 						true,
 						admins
@@ -112,7 +116,7 @@ const createGreenBond = async (bond) => {
 						const profile = JSON.parse(sub.data.profile);
 						const companyName = profile.companyName;
 						await bondAvailableForSubscription(
-							companyName,
+							companyName ? companyName : "User",
 							sub.data.email,
 							bond.loan_name,
 							admins
@@ -121,7 +125,7 @@ const createGreenBond = async (bond) => {
 					break;
 				case "Diligence Rejected":
 					await diligenceApproval(
-						companyName,
+						companyName ? companyName : "User",
 						res.data.email,
 						false,
 						admins
@@ -179,7 +183,9 @@ const createGreenBond = async (bond) => {
 
 						for (let i = 0; i < emailsTo.length; i++) {
 							await fullSubscription(
-								emailsTo[i].companyName,
+								emailsTo[i].companyName
+									? emailsTo[i].companyName
+									: "User",
 								emailsTo[i].email,
 								[res.data.email, ...admins],
 								bond.loan_name
@@ -201,7 +207,7 @@ const createGreenBond = async (bond) => {
 						}
 					});
 					await tokenizeBond(
-						companyName,
+						companyName ? companyName : "User",
 						res.data.email,
 						[...subscribersArray, ...custodians],
 						bond.loan_name
@@ -223,7 +229,7 @@ const createGreenBond = async (bond) => {
 					});
 
 					await matureBond(
-						companyName,
+						companyName ? companyName : "User",
 						res.data.email,
 						[...subscribersArr, ...custodianUsers, ...admins],
 						bond.loan_name,
