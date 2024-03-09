@@ -4,6 +4,19 @@ const {
 	getTokenized,
 } = require("../services/hyperLedgerFunctions/tokenizedBond");
 const TokenizedBond = require("../models/tokenizedBond");
+const {
+	getAllBondsWithStatus,
+} = require("../services/hyperLedgerFunctions/greenBond");
+const {
+	getNextRepaymentDate,
+	calculateDateDifferenceInDays,
+} = require("../helper/dateFunctions");
+const { sendEmail } = require("../services/emailHelper");
+const {
+	getUser,
+	getAllUser,
+} = require("../services/hyperLedgerFunctions/userAsset");
+const { formatCurrency } = require("../services/helper/helperFunctions");
 
 // Create Transaction
 const createTokenizedBond = async (req, res) => {
@@ -49,4 +62,107 @@ const getTokenizedBond = async (req, res) => {
 	res.status(400).json("Invalid request");
 };
 
-module.exports = { createTokenizedBond, getTokenizedBond };
+const getAllTokenizedBond = async (req, res) => {
+	try {
+		//status 5 represents the tokenized bonds
+		var result = await getAllBondsWithStatus(5);
+		console.log(result);
+		if (result) {
+			return res.status(200).json(result);
+		}
+	} catch (error) {
+		logger.error(error);
+	}
+	res.status(400).json("Invalid request");
+};
+
+const sendDueDateReminderMail = async () => {
+	logger.info("sendDueDateReminderMail started");
+	try {
+		// get all the tokenized bonds
+		var res = await getAllBondsWithStatus(5);
+		logger.info("Tokenized Green Bonds: ", res);
+		if (!res.data.GreenBond || res.data.GreenBond.length <= 0) {
+			return;
+		}
+		//get the tokenized bond details
+		for (const bond of res.data.GreenBond) {
+			try {
+				const tokenRes = await getTokenized("bondId", bond.Id);
+				logger.info("Tokenized Bond details: ", tokenRes);
+				if (
+					!tokenRes ||
+					!tokenRes.records[0] ||
+					!tokenRes.records[0].data
+				) {
+					continue;
+				}
+				const tokenizedBond = tokenRes.records[0].data;
+				var { repaymentDate, repaymentDisplayDate } =
+					getNextRepaymentDate(
+						tokenizedBond.repaymentStartTime,
+						tokenizedBond.repaymentCounter,
+						tokenizedBond.paymentFrequencyInDays
+					);
+
+				//send before 5,1 and on due date
+				const dayDiff = calculateDateDifferenceInDays(
+					repaymentDate,
+					Date.now()
+				);
+				logger.info(
+					`Repayment Date: ${repaymentDisplayDate} and due date diff: ${dayDiff}`
+				);
+				if (dayDiff === 5 || dayDiff === 3 || dayDiff === 0) {
+					const res = await getUser(bond.borrowerId.toString());
+					logger.info("Get user response: ", res);
+					const profile = JSON.parse(res.data.profile);
+					const companyName = profile.companyName;
+
+					// Get admins
+					let admins = [];
+					const adminResult = await getAllUser();
+
+					adminResult.records.forEach((user) => {
+						if (user.data.role === 4) {
+							admins.push(user.data.email);
+						}
+					});
+
+					const mainBody = `<!-- START MAIN CONTENT AREA -->
+					<tr>
+					<td class="wrapper">
+					<p>Dear ${companyName},</p>
+					<p>The Green bond ${bond.loan_name} repayment of ${
+						process.env.CURRENCY_SYMBOL
+					}${formatCurrency(
+						bond.loan_amount
+					)} is due on ${repaymentDisplayDate}.</p>
+					<p>Kindly make the repayment on or before the due date.</p>
+					<p>Thanks,<br/>Team Project iGreen</p>  
+					</td>
+					</tr>`;
+
+					await sendEmail(
+						res.data.email,
+						"Project iGreen - Green Bond repayment due",
+						mainBody,
+						profile.email,
+						admins
+					);
+				}
+			} catch (error) {
+				logger.error(error);
+			}
+		}
+	} catch (error) {
+		logger.error(error);
+	}
+};
+
+module.exports = {
+	createTokenizedBond,
+	getTokenizedBond,
+	getAllTokenizedBond,
+	sendDueDateReminderMail,
+};

@@ -678,4 +678,5 @@ module.exports = {
 	matureBond,
 	resetPasswordMail,
 	updateProfile,
+	sendEmail,
 };

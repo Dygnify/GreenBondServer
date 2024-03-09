@@ -11,6 +11,9 @@ const accountingRoutes = require("./routes/accountingRoutes");
 const nftRoutes = require("./routes/nftRoutes");
 const app = express();
 const cors = require("cors");
+const {
+	sendDueDateReminderMail,
+} = require("./controllers/tokenizedBondController");
 
 initializeFirebaseApp();
 
@@ -27,4 +30,13 @@ app.use("/tokenizedBond", tokenizedBondRoutes);
 app.use("/accounting", accountingRoutes);
 app.use("/nft", nftRoutes);
 
-exports.api = functions.region("asia-south1").https.onRequest(app);
+exports.api = functions.region("asia-southeast1").https.onRequest(app);
+
+// This function runs every day at 1 AM IST
+exports.scheduledDueDateReminder = functions
+	.region("asia-southeast1")
+	.pubsub.schedule("30 5 * * *")
+	.onRun(async (context) => {
+		console.log("scheduledDueDateReminder started");
+		sendDueDateReminderMail();
+	});

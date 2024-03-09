@@ -74,10 +74,35 @@ function addDaysToDate(date, days) {
 	return undefined;
 }
 
+function getNextRepaymentDate(
+	repaymentStartDate,
+	repaymentCounter,
+	paymentFrequency
+) {
+	if (!repaymentStartDate || !repaymentCounter || !paymentFrequency) {
+		return;
+	}
+	function pad(s) {
+		return s < 10 ? "0" + s : s;
+	}
+
+	var repaymentDate = new Date(repaymentStartDate);
+	repaymentDate.setDate(
+		repaymentDate.getDate() + repaymentCounter * paymentFrequency
+	);
+	const repaymentDisplayDate = [
+		pad(repaymentDate.getDate()),
+		pad(repaymentDate.getMonth() + 1),
+		repaymentDate.getFullYear(),
+	].join("/");
+	return { repaymentDate, repaymentDisplayDate };
+}
+
 module.exports = {
 	calculateDateDifferenceInDays,
 	isDateGreaterThan,
 	getDayFromDate,
 	addMonthsToDate,
 	addDaysToDate,
+	getNextRepaymentDate,
 };

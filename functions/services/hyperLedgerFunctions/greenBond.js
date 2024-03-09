@@ -331,4 +331,53 @@ const getSubscribersFromBondId = async (bondId) => {
 	return subscribersArray;
 };
 
-module.exports = { createGreenBond, getGreenBond, getAllGreenBonds };
+const getBondWithStatusOption = (status) => {
+	if (!status) {
+		return;
+	}
+
+	let data = JSON.stringify({
+		query: `{
+			GreenBond(status: ${status}){
+              Id,
+			  borrowerId,
+			  companyDetails,
+			  loan_name,
+			  loan_amount
+      }}`,
+	});
+
+	return {
+		method: "post",
+		maxBodyLength: Infinity,
+		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/graphql`,
+		headers: {
+			"X-API-KEY": process.env.SPYDRA_API_KEY,
+			"Content-Type": "application/json",
+		},
+		data: data,
+	};
+};
+
+const getAllBondsWithStatus = async (status) => {
+	logger.info("getAllBondsWithStatus start with input status: ", status);
+	if (!status) {
+		return;
+	}
+	try {
+		let result = await axiosHttpService(getBondWithStatusOption(status));
+		if (result.code === 200) {
+			return result.res;
+		}
+		return;
+	} catch (error) {
+		logger.error(error);
+	}
+};
+
+module.exports = {
+	createGreenBond,
+	getGreenBond,
+	getAllGreenBonds,
+	getAllBondsWithStatus,
+};
