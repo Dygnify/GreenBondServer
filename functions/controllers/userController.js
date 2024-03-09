@@ -179,7 +179,7 @@ const forgotUserPassword = async (req, res) => {
 		if (result.success) {
 			return res.json({
 				...result,
-				message: "Password reset successfull",
+				message: "Password reset successful",
 			});
 		} else {
 			res.status(400).json({

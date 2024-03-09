@@ -136,7 +136,7 @@ const sendDueDateReminderMail = async () => {
 					<p>The Green bond ${bond.loan_name} repayment of ${
 						process.env.CURRENCY_SYMBOL
 					}${formatCurrency(
-						bond.loan_amount
+						tokenizedBond.emiAmount
 					)} is due on ${repaymentDisplayDate}.</p>
 					<p>Kindly make the repayment on or before the due date.</p>
 					<p>Thanks,<br/>Team Project iGreen</p>  

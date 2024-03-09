@@ -631,14 +631,14 @@ const resetPasswordMail = async (name, link, email, password, cc) => {
       <td class="wrapper">
       <p>Dear ${name},</p>
       <p>Your password has been successfully reset for Project iGreen.
-      Please login to the platform using the <a href="${link}">link</a> and the email ${email} and temporary password ${password} and change with your new password.</p>
+      Please login to the platform using the <a href="${link}">link</a> and the email ${email} and temporary password <b>${password}</b> and change with your new password.</p>
       <p>Thanks,<br/>Team Project iGreen</p> 
       </td>
     </tr>`;
 
 	await sendEmail(
 		email,
-		"Project iGreen - Password reset successfull",
+		"Project iGreen - Password reset successful",
 		mainBody,
 		cc,
 		bcc
