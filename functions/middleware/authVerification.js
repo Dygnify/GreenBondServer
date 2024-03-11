@@ -3,6 +3,11 @@ const { logger } = require("firebase-functions/v1");
 
 const verifyToken = async (req, res, next) => {
 	try {
+		if (req.url === "/borrower/forgotPassword") {
+			logger.info("Skipped authentication for forgotPassword");
+			next();
+			return;
+		}
 		const authorizationHeader = req.headers.authorization;
 		if (!authorizationHeader) {
 			throw new Error("Unauthorized");
