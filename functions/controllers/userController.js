@@ -59,7 +59,7 @@ const getUsers = async (req, res) => {
 		if (req.body.Id) {
 			logger.info("Get user with id called, for id: ", req.body.Id);
 			result = await getUser(req.body.Id);
-		} else if (req.body.role) {
+		} else if (req.body.role !== undefined) {
 			logger.info(
 				`Get user with email called, with param email: ${req.body.email} and role: ${req.body.role}`
 			);
