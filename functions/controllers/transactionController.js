@@ -8,6 +8,7 @@ const Transaction = require("../models/transaction");
 
 // Create Transaction
 const createTransaction = async (req, res) => {
+	logger.info("createTransaction execution started");
 	try {
 		// validate the body
 		if (!req.body) {
@@ -15,16 +16,20 @@ const createTransaction = async (req, res) => {
 			response.status(400).send("Invalid data");
 		}
 
+		logger.info("Transaction data received: ", req.body);
 		const { error } = Transaction.validate(req.body);
 		if (error) {
+			logger.error("Transaction validation failed: ", error);
 			return res.status(400).send(error.details);
 		}
 
 		// store in hyperledger
 		var result = await createTx(req.body);
 		if (result.Id) {
+			logger.info("Transaction successfuly created with id: ", result.Id);
 			return res.status(201).json(result.Id);
 		} else {
+			logger.error("Failed to create Transaction");
 			return res.status(result.code).json(result.res);
 		}
 	} catch (error) {
@@ -35,14 +40,18 @@ const createTransaction = async (req, res) => {
 
 // Get list of Tx
 const getTransaction = async (req, res) => {
+	logger.info("getTransaction execution started");
 	try {
 		if (!req.body) {
-			logger.error("Invalid request data");
+			logger.error("Request body not available");
 			response.status(400).send("Invalid data");
 		}
-
+		logger.info(
+			`Get user with field and value called, with param field: ${req.body.field} and value: ${req.body.value}`
+		);
 		var result = await getTx(req.body.field, req.body.value);
 		if (result) {
+			logger.info("Transaction found: ", result);
 			return res.status(200).json(result);
 		}
 	} catch (error) {
@@ -53,9 +62,11 @@ const getTransaction = async (req, res) => {
 
 // Get list of all Tx
 const getAllTransactions = async (req, res) => {
+	logger.info("getAllTransactions execution started");
 	try {
 		var result = await getAllTx(req.body?.pageSize, req.body?.bookmark);
 		if (result) {
+			logger.info("Transaction found: ", result);
 			return res.status(200).json(result);
 		}
 	} catch (error) {

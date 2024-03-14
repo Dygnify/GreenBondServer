@@ -86,11 +86,13 @@ const getUsers = async (req, res) => {
 
 // Get list of posts
 const getAllUsers = async (req, res) => {
+	logger.info("getAllUsers execution started");
 	try {
 		let result;
 		result = await getAllUser(req.body?.pageSize, req.body?.bookmark);
 
 		if (result) {
+			logger.info("User found: ", result);
 			return res.status(200).json(result);
 		}
 	} catch (error) {
@@ -100,12 +102,17 @@ const getAllUsers = async (req, res) => {
 };
 
 const getUserAccountStatus = async (req, res) => {
+	logger.info("getUserAccountStatus execution started");
 	try {
 		if (!req.body.email) {
+			logger.error("User validation failed: email field required");
 			return res.status(400).json("Invalid request");
 		}
 		const auth = getFirebaseAdminAuth();
 		const userRecord = await auth.getUserByEmail(req.body.email);
+		logger.info(
+			`User account status received with email: ${req.body.email}`
+		);
 		return res.json({
 			success: true,
 			disabled: userRecord.disabled,
@@ -117,8 +124,10 @@ const getUserAccountStatus = async (req, res) => {
 };
 
 const enableDisableUserAccount = async (req, res) => {
+	logger.info("enableDisableUserAccount execution started");
 	try {
 		if (!req.body.email) {
+			logger.error("User validation failed: email field required");
 			return res.status(400).json("Invalid request");
 		}
 		const auth = getFirebaseAdminAuth();
@@ -127,6 +136,11 @@ const enableDisableUserAccount = async (req, res) => {
 			disabled: !userRecord.disabled,
 		});
 		if (updatedrecord.disabled !== userRecord.disabled) {
+			logger.info(
+				`User Account with email: ${req.body.email} is now ${
+					updatedrecord.disabled ? "Disabled" : "Enabled"
+				}`
+			);
 			return res.json({
 				success: true,
 				message: `User Account ${
@@ -135,6 +149,7 @@ const enableDisableUserAccount = async (req, res) => {
 				disabled: updatedrecord.disabled,
 			});
 		} else {
+			logger.error("Failed to change account status!");
 			return res.json({
 				success: false,
 				message: "Failed to change account status!",
@@ -147,18 +162,22 @@ const enableDisableUserAccount = async (req, res) => {
 };
 
 const deleteUserAccount = async (req, res) => {
+	logger.info("deleteUserAccount execution started");
 	try {
 		if (!req.body.email || req.body.role === undefined) {
+			logger.error("User validation failed");
 			return res.status(400).json("Invalid request");
 		}
 		const result = await deleteUser(req.body.email, req.body.role);
 		if (result.success) {
 			await deleteUserInFirebase(req.body.email);
+			logger.info("Successfully deleted User");
 			return res.json({
 				success: true,
 				message: "Successfully deleted User",
 			});
 		} else {
+			logger.error("Unable to delete User account");
 			res.status(400).json({
 				success: false,
 				message: "Unable to delete User account",
@@ -173,15 +192,18 @@ const deleteUserAccount = async (req, res) => {
 const forgotUserPassword = async (req, res) => {
 	try {
 		if (!req.body.email) {
+			logger.error("User validation failed");
 			return res.status(400).json("Invalid request");
 		}
 		const result = await forgotPassword(req.body.email);
 		if (result.success) {
+			logger.info("Password reset successful");
 			return res.json({
 				...result,
 				message: "Password reset successful",
 			});
 		} else {
+			logger.error("Failed to reset password");
 			res.status(400).json({
 				success: false,
 				message: "Failed to reset password",
@@ -198,7 +220,6 @@ const deleteUserInFirebase = async (email) => {
 	// Get user record from firebase
 	const userRecord = await auth.getUserByEmail(email);
 	// Delete the user
-	console.log("userRecord", userRecord);
 	await auth.deleteUser(userRecord.uid);
 };
 
