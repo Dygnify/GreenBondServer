@@ -81,10 +81,11 @@ const createTx = async (transaction) => {
 							? custodians[i].companyName
 							: "User",
 						custodians[i].email,
-						[res.data.email, ...admins],
+						res.data.email,
 						transaction.bondName,
 						transaction.amount,
-						transaction.transactionDate
+						transaction.transactionDate,
+						admins
 					);
 				}
 			} else if (transaction?.investorTransactionType === 1) {
@@ -102,10 +103,11 @@ const createTx = async (transaction) => {
 				await distributePay(
 					companyName ? companyName : "User",
 					res.data.email,
-					[...custodians, ...admins],
+					custodians,
 					transaction.bondName,
 					transaction.amount,
-					transaction.transactionDate
+					transaction.transactionDate,
+					admins
 				);
 			}
 		}

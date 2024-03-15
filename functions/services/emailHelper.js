@@ -335,9 +335,7 @@ const transporter = nodemailer.createTransport({
 	},
 });
 
-const bcc = "dygnify@gmail.com";
-
-const userRegistration = async (name, email, password, role, link, cc) => {
+const userRegistration = async (name, email, password, role, link, bcc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
@@ -352,31 +350,29 @@ const userRegistration = async (name, email, password, role, link, cc) => {
 		email,
 		"Project iGreen - New user registered",
 		mainBody,
-		cc,
+		"",
 		bcc
 	);
 };
 
-const passwordChanged = async (name, email, link, cc) => {
+const passwordChanged = async (name, email, link) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
       <p>Dear ${name},</p>
-      <p>Your password has been changed successfuly.
-      Please login to the platform using the <a href="${link}">link</a>.</p>
+      <p>You have successfully changed your password.
+      Please login to the platform using the <a href="${link}">link</a> and the email ${email} and the password set by you.</p>
       <p>Thanks,<br/>Team Project iGreen</p>  
       </td>
     </tr>`;
 
 	await sendEmail(
 		email,
-		"Project iGreen - New user registered",
-		mainBody,
-		cc,
-		bcc
+		"Project iGreen - Password changed successfully",
+		mainBody
 	);
 };
-const createProfile = async (name, email, role, cc) => {
+const createProfile = async (name, email, role, bcc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
@@ -390,12 +386,12 @@ const createProfile = async (name, email, role, cc) => {
 		email,
 		"Project iGreen - User profile created",
 		mainBody,
-		cc,
+		"",
 		bcc
 	);
 };
 
-const updateProfile = async (name, email, role, cc) => {
+const updateProfile = async (name, email, role, bcc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
@@ -409,11 +405,11 @@ const updateProfile = async (name, email, role, cc) => {
 		email,
 		"Project iGreen - User profile updated",
 		mainBody,
-		cc,
+		"",
 		bcc
 	);
 };
-const completeKyc = async (name, email, role, cc) => {
+const completeKyc = async (name, email, role, bcc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
@@ -423,9 +419,9 @@ const completeKyc = async (name, email, role, cc) => {
       </td>
     </tr>`;
 
-	await sendEmail(email, "Project iGreen - KYC completed", mainBody, cc, bcc);
+	await sendEmail(email, "Project iGreen - KYC completed", mainBody, "", bcc);
 };
-const borrowRequestCreation = async (name, email, cc) => {
+const borrowRequestCreation = async (name, email, bcc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
@@ -439,12 +435,12 @@ const borrowRequestCreation = async (name, email, cc) => {
 		email,
 		"Project iGreen - Bond proposal creation",
 		mainBody,
-		cc,
+		"",
 		bcc
 	);
 };
 
-const adminApproval = async (name, email, approved, cc) => {
+const adminApproval = async (name, email, approved, bcc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
@@ -460,12 +456,12 @@ const adminApproval = async (name, email, approved, cc) => {
 		email,
 		"Project iGreen - Bond proposal Admin approval",
 		mainBody,
-		cc,
+		"",
 		bcc
 	);
 };
 
-const diligenceApproval = async (name, email, approved, cc) => {
+const diligenceApproval = async (name, email, approved, bcc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
@@ -483,12 +479,12 @@ const diligenceApproval = async (name, email, approved, cc) => {
 		email,
 		"Project iGreen - Bond proposal Diligence approval",
 		mainBody,
-		cc,
+		"",
 		bcc
 	);
 };
 
-const bondAvailableForSubscription = async (name, email, bondName, cc) => {
+const bondAvailableForSubscription = async (name, email, bondName, bcc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
@@ -503,12 +499,12 @@ const bondAvailableForSubscription = async (name, email, bondName, cc) => {
 		email,
 		"Project iGreen - Green Bond available for subscription",
 		mainBody,
-		cc,
+		"",
 		bcc
 	);
 };
 
-const fullSubscription = async (name, email, cc, bondName) => {
+const fullSubscription = async (name, email, bcc, bondName) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
@@ -522,12 +518,12 @@ const fullSubscription = async (name, email, cc, bondName) => {
 		email,
 		"Project iGreen - Green Bond subscribed",
 		mainBody,
-		cc,
+		"",
 		bcc
 	);
 };
 
-const tokenizeBond = async (name, email, cc, bondName) => {
+const tokenizeBond = async (name, email, cc, bondName, bcc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
@@ -552,7 +548,8 @@ const repayment = async (
 	cc,
 	bondName,
 	dueAmount,
-	repaymentDate
+	repaymentDate,
+	bcc
 ) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
@@ -582,7 +579,8 @@ const distributePay = async (
 	cc,
 	bondName,
 	dueAmount,
-	repaymentDate
+	repaymentDate,
+	bcc
 ) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
@@ -606,7 +604,7 @@ const distributePay = async (
 	);
 };
 
-const matureBond = async (name, email, cc, bondName, date) => {
+const matureBond = async (name, email, cc, bondName, date, bcc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
@@ -625,23 +623,21 @@ const matureBond = async (name, email, cc, bondName, date) => {
 	);
 };
 
-const resetPasswordMail = async (name, link, email, password, cc) => {
+const resetPasswordMail = async (name, link, email, password) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
       <p>Dear ${name},</p>
-      <p>Your password has been successfully reset for Project iGreen.
-      Please login to the platform using the <a href="${link}">link</a> and the email ${email} and temporary password <b>${password}</b> and change with your new password.</p>
+      <p>Your password has been successfully reset to a default password by system.
+      Please login to the platform using the <a href="${link}">link</a> and the email ${email} and temporary password <b>${password}</b> and then immediately set a new password.</p>
       <p>Thanks,<br/>Team Project iGreen</p> 
       </td>
     </tr>`;
 
 	await sendEmail(
 		email,
-		"Project iGreen - Password reset successful",
-		mainBody,
-		cc,
-		bcc
+		"Project iGreen - Default password reset successful",
+		mainBody
 	);
 };
 

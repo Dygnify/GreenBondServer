@@ -7,6 +7,7 @@ const transactionRoutes = require("./routes/transactionRoutes");
 const tokenizedBondRoutes = require("./routes/tokenizedBondRoutes");
 const accountingRoutes = require("./routes/accountingRoutes");
 const nftRoutes = require("./routes/nftRoutes");
+const helmet = require("helmet");
 const app = express();
 const cors = require("cors");
 const {
@@ -16,6 +17,7 @@ const { verifyToken } = require("./middleware/authVerification");
 
 initializeFirebaseApp();
 
+// Middlewares
 app.use(express.json());
 app.use(
 	cors({
@@ -24,6 +26,9 @@ app.use(
 	})
 );
 app.use(verifyToken);
+app.use(helmet());
+
+// Routes
 app.use("/borrower", userRoutes);
 app.use("/bond", bondRoutes);
 app.use("/transaction", transactionRoutes);

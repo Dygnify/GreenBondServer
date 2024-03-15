@@ -113,8 +113,7 @@ const createNewUser = async (user) => {
 			await passwordChanged(
 				companyName ? companyName : "User",
 				user.email,
-				process.env.DEPLOYED_APP_URL,
-				admins
+				process.env.DEPLOYED_APP_URL
 			);
 		}
 		return { Id: data.Id, ...result.res };

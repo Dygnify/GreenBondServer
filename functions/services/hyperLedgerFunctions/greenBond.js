@@ -145,7 +145,9 @@ const createGreenBond = async (bond) => {
 								tx.bondId === bond.Id
 						);
 						console.log(transactions);
-						let emailsTo = [];
+						let emailsTo = [
+							{ companyName: companyName, email: res.data.email },
+						];
 						const result = await getAllUser();
 
 						result.records.forEach((user) => {
@@ -187,7 +189,7 @@ const createGreenBond = async (bond) => {
 									? emailsTo[i].companyName
 									: "User",
 								emailsTo[i].email,
-								[res.data.email, ...admins],
+								admins,
 								bond.loan_name
 							);
 						}
@@ -210,7 +212,8 @@ const createGreenBond = async (bond) => {
 						companyName ? companyName : "User",
 						res.data.email,
 						[...subscribersArray, ...custodians],
-						bond.loan_name
+						bond.loan_name,
+						admins
 					);
 					break;
 
@@ -231,9 +234,10 @@ const createGreenBond = async (bond) => {
 					await matureBond(
 						companyName ? companyName : "User",
 						res.data.email,
-						[...subscribersArr, ...custodianUsers, ...admins],
+						[...subscribersArr, ...custodianUsers],
 						bond.loan_name,
-						todayDate
+						todayDate,
+						admins
 					);
 					break;
 				default:
