@@ -4,6 +4,7 @@ let firebaseApp;
 const initializeFirebaseApp = () => {
 	firebaseApp = admin.initializeApp({
 		credential: admin.credential.cert(serviceAccount),
+		storageBucket: process.env.STORAGE_BUCKET,
 	});
 };
 
@@ -15,4 +16,16 @@ const getFirebaseAdminAuth = () => {
 	}
 };
 
-module.exports = { getFirebaseAdminAuth, initializeFirebaseApp };
+const getFirebaseAdminStorage = () => {
+	if (firebaseApp) {
+		return firebaseApp.storage();
+	} else {
+		undefined;
+	}
+};
+
+module.exports = {
+	getFirebaseAdminAuth,
+	initializeFirebaseApp,
+	getFirebaseAdminStorage,
+};

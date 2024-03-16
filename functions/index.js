@@ -7,6 +7,7 @@ const transactionRoutes = require("./routes/transactionRoutes");
 const tokenizedBondRoutes = require("./routes/tokenizedBondRoutes");
 const accountingRoutes = require("./routes/accountingRoutes");
 const nftRoutes = require("./routes/nftRoutes");
+const utilityRoutes = require("./routes/utilityRoutes");
 const helmet = require("helmet");
 const app = express();
 const cors = require("cors");
@@ -35,6 +36,7 @@ app.use("/transaction", transactionRoutes);
 app.use("/tokenizedBond", tokenizedBondRoutes);
 app.use("/accounting", accountingRoutes);
 app.use("/nft", nftRoutes);
+app.use("/utility", utilityRoutes);
 
 exports.api = functions.region("asia-southeast1").https.onRequest(app);
 
