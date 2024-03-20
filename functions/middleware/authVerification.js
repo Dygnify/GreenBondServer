@@ -3,7 +3,10 @@ const { logger } = require("firebase-functions/v1");
 
 const verifyToken = async (req, res, next) => {
 	try {
-		if (req.url === "/borrower/forgotPassword") {
+		if (
+			req.url === "/borrower/forgotPassword" ||
+			req.url === "/nft/webhook"
+		) {
 			logger.info("Skipped authentication for forgotPassword");
 			next();
 			return;
