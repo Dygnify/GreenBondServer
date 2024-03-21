@@ -10,6 +10,7 @@ const {
 } = require("../emailHelper");
 const crypto = require("crypto");
 const { getFirebaseAdminAuth } = require("../../firebaseInit");
+const uuid = require("uuid");
 
 const Role = [
 	"Subscriber",
@@ -46,13 +47,15 @@ const createNewUser = async (user) => {
 	if (!user) {
 		return;
 	}
-	let data = user;
+	let data = { ...user };
+	data.email = data.email.toLowerCase();
 	let action = data.action;
 	if (action) {
 		delete data.action;
+		delete data.password;
 	}
 	if (!user.Id) {
-		const id = Math.floor(Date.now() / 1000);
+		const id = uuid.v4();
 		data = {
 			Id: id.toString(),
 			...data,
@@ -60,7 +63,7 @@ const createNewUser = async (user) => {
 				owners: [
 					{
 						orgId: process.env.SPYDRA_MEMBERSHIP_ID,
-						user: user.email,
+						user: data.email,
 					},
 				],
 			},
@@ -160,7 +163,7 @@ const getUserWithEmailAndRole = async (email, role) => {
 	}
 	try {
 		let result = await axiosHttpService(
-			getUserWithEmailAndRoleOption(email, role)
+			getUserWithEmailAndRoleOption(email.toLowerCase(), role)
 		);
 		if (result.code === 200) {
 			return result.res.data.User;
@@ -205,7 +208,9 @@ const getUserWithEmail = async (email) => {
 		return;
 	}
 	try {
-		let result = await axiosHttpService(getUserWithEmailOption(email));
+		let result = await axiosHttpService(
+			getUserWithEmailOption(email.toLowerCase())
+		);
 		if (result.code === 200) {
 			return result.res.data.User;
 		}
@@ -274,8 +279,8 @@ const getAllUser = async (pageSize = 500, bookmark) => {
 	}
 };
 
-const deleteUserOption = (email, role, Id) => {
-	if (!email || role === undefined) {
+const deleteUserOption = (Id) => {
+	if (!Id) {
 		return;
 	}
 
@@ -303,11 +308,11 @@ const deleteUser = async (email, role) => {
 			return;
 		}
 		let userResult = await getUserWithEmailAndRole(email, role);
-		result = await axiosHttpService(
-			deleteUserOption(email, role, userResult[0].Id)
-		);
-		if (result.code === 200) {
-			return { success: true };
+		if (userResult) {
+			result = await axiosHttpService(deleteUserOption(userResult[0].Id));
+			if (result.code === 200) {
+				return { success: true };
+			}
 		}
 		return { success: false };
 	} catch (error) {
@@ -323,39 +328,15 @@ const forgotPassword = async (email) => {
 		}
 
 		// Get Id of user
-		let data = JSON.stringify({
-			query: `{
-			  User(email: "${email}"){
-				  Id,
-				  email,
-				  profile,
-				  role,
-				  kycStatus, 
-				  isNewUser
-		  }}`,
-		});
-
-		let options = {
-			method: "post",
-			maxBodyLength: Infinity,
-			url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/graphql`,
-			headers: {
-				"X-API-KEY": process.env.SPYDRA_API_KEY,
-				"Content-Type": "application/json",
-			},
-			data: data,
-		};
-
-		let userResult = await axiosHttpService(options);
-		let user = userResult.res.data.User[0];
-		console.log(user);
-		if (userResult.code !== 200) {
+		let userResult = await getUserWithEmail(email);
+		if (!userResult || userResult.length <= 0) {
 			return { success: false };
 		}
 
+		let user = userResult[0];
+
 		// Generate temporary password
 		const temporaryPassword = generateSecurePassword(10);
-		console.log("pass", temporaryPassword);
 
 		// Change password
 		const auth = getFirebaseAdminAuth();

@@ -12,6 +12,7 @@ const {
 const { getUser, getAllUser } = require("./userAsset");
 const { getTx } = require("./transaction");
 const { convertTimestampToDate } = require("../helper/helperFunctions");
+const uuid = require("uuid");
 
 const createGreenBondOption = (bond) => {
 	if (!bond) {
@@ -45,7 +46,7 @@ const createGreenBond = async (bond) => {
 		delete data.action;
 	}
 	if (!bond.Id) {
-		const id = Math.floor(Date.now() / 1000);
+		const id = uuid.v4();
 		data = {
 			Id: id.toString(),
 			...data,

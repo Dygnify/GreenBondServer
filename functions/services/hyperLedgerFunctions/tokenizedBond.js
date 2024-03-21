@@ -1,5 +1,6 @@
 const { logger } = require("firebase-functions/v1");
 const { axiosHttpService } = require("../axioscall");
+const uuid = require("uuid");
 
 const createTokenizedOption = (tokenizedBond) => {
 	if (!tokenizedBond) {
@@ -29,7 +30,7 @@ const createTokenized = async (tokenizedBond) => {
 	}
 	let data = tokenizedBond;
 	if (!tokenizedBond.Id) {
-		const id = Math.floor(Date.now() / 1000);
+		const id = uuid.v4();
 		data = {
 			Id: id.toString(),
 			...tokenizedBond,
