@@ -26,6 +26,10 @@ app.use(
 		allowedHeaders: ["Content-Type", "Authorization"],
 	})
 );
+app.use((req, res, next) => {
+	res.setHeader("X-Powered-By", "Dygnify");
+	next();
+});
 app.use(verifyToken);
 app.use(helmet());
 

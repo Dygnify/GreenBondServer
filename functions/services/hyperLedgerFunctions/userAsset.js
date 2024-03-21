@@ -359,7 +359,6 @@ const forgotPassword = async (email) => {
 		// Update backend to show change password when user login
 		user.isNewUser = true;
 		const result = await createNewUser(user);
-		console.log(result);
 		if (!result.Id) {
 			return { success: false };
 		}
