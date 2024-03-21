@@ -52,9 +52,9 @@ const createNewUser = async (user) => {
 	let action = data.action;
 	if (action) {
 		delete data.action;
-		delete data.password;
 	}
 	if (!user.Id) {
+		delete data.password;
 		const id = uuid.v4();
 		data = {
 			Id: id.toString(),
