@@ -54,7 +54,21 @@ const createNewUser = async (user) => {
 		delete data.action;
 	}
 	if (!user.Id) {
-		delete data.password;
+		// Generate temporary password
+		const temporaryPassword = generateSecurePassword(10);
+
+		// Create user in firebase
+		const auth = getFirebaseAdminAuth();
+		const userRecord = await auth.createUser({
+			email: data.email,
+			password: temporaryPassword,
+		});
+
+		logger.log(
+			"Successfully created new user in firebase:",
+			userRecord.uid
+		);
+
 		const id = uuid.v4();
 		data = {
 			Id: id.toString(),

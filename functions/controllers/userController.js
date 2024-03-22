@@ -34,14 +34,12 @@ const createUser = async (req, res) => {
 			logger.info("User successfuly created with id: ", result.Id);
 			return res.status(201).json(result.Id);
 		} else {
-			logger.error(
-				"Failed to create user in spydra, proceed with deletion of user in firebase."
-			);
-			await deleteUserInFirebase(req.body.email);
+			logger.error("Failed to create user");
+			// await deleteUserInFirebase(req.body.email);
 			return res.status(result.code).json(result.res);
 		}
 	} catch (error) {
-		await deleteUserInFirebase(req.body.email);
+		// await deleteUserInFirebase(req.body.email);
 		logger.error(error);
 	}
 	res.status(400).send("Invalid request");
