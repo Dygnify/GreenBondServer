@@ -99,7 +99,7 @@ const createNewUser = async (user) => {
 			await userRegistration(
 				"User",
 				user.email,
-				user.password,
+				temporaryPassword,
 				Role[user.role],
 				process.env.DEPLOYED_APP_URL,
 				admins
