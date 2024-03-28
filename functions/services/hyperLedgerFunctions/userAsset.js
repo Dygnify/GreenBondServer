@@ -307,6 +307,16 @@ const getAllUser = async (pageSize = 500, bookmark) => {
 			getAllUserOption(pageSize, bookmark)
 		);
 		if (result.code === 200) {
+			if (result.res.count) {
+				result.res.records = result.res.records.map((element) => {
+					if (element.data.profile !== "{}") {
+						element.data.profile = decryptData(
+							element.data.profile
+						);
+					}
+					return element;
+				});
+			}
 			return result.res;
 		}
 		return;
