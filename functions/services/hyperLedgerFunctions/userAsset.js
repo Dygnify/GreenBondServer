@@ -278,7 +278,8 @@ const getUser = async (Id) => {
 	try {
 		let result = await axiosHttpService(getUserOption(Id));
 		if (result.code === 200) {
-			return getDecryptedUser(result.res.data);
+			result.res.data = getDecryptedUser(result.res.data);
+			return result.res;
 		}
 		return;
 	} catch (error) {

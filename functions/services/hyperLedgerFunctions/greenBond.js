@@ -70,8 +70,10 @@ const eDCryptBondData = (bond, encrypt = false) => {
 				? encryptData(bond.loan_purpose)
 				: decryptData(bond.loan_purpose);
 		}
+		return bond;
 	} catch (error) {
 		logger.error(error);
+		return;
 	}
 };
 
@@ -328,7 +330,18 @@ const getGreenBond = async ({ field, value }) => {
 	try {
 		let result = await axiosHttpService(getGreenBondOption(field, value));
 		if (result.code === 200) {
-			return eDCryptBondData(result.res);
+			let res = result.res;
+			if (field === "Id") {
+				res.data = eDCryptBondData(res.data);
+			} else {
+				if (res.count) {
+					res.records = res.records.map((element) => {
+						element.data = eDCryptBondData(element.data);
+						return element;
+					});
+				}
+			}
+			return res;
 		}
 		return;
 	} catch (error) {
@@ -356,7 +369,14 @@ const getAllGreenBonds = async (pageSize = 500, bookmark) => {
 			getAllGreenBondsOption(pageSize, bookmark)
 		);
 		if (result.code === 200) {
-			return eDCryptBondData(result.res);
+			let res = result.res;
+			if (res.count) {
+				res.records = res.records.map((element) => {
+					element.data = eDCryptBondData(element.data);
+					return element;
+				});
+			}
+			return res;
 		}
 		return;
 	} catch (error) {
@@ -417,7 +437,14 @@ const getAllBondsWithStatus = async (status) => {
 	try {
 		let result = await axiosHttpService(getBondWithStatusOption(status));
 		if (result.code === 200) {
-			return eDCryptBondData(result.res);
+			let res = result.res;
+			if (res.data.GreenBond_count) {
+				res.data.GreenBond = res.data.GreenBond.map((element) => {
+					element = eDCryptBondData(element);
+					return element;
+				});
+			}
+			return res;
 		}
 		return;
 	} catch (error) {
