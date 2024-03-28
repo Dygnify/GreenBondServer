@@ -15,6 +15,7 @@ const {
 	sendDueDateReminderMail,
 } = require("./controllers/tokenizedBondController");
 const { verifyToken } = require("./middleware/authVerification");
+const sanitizeInput = require("./middleware/sanitizeInput");
 
 initializeFirebaseApp();
 
@@ -28,9 +29,15 @@ app.use(
 );
 app.use((req, res, next) => {
 	res.setHeader("X-Powered-By", "Dygnify");
+	res.setHeader("Content-Security-Policy", "default-src 'self'");
+	res.setHeader(
+		"Strict-Transport-Security",
+		"max-age=31536000; includeSubDomains; preload"
+	);
 	next();
 });
 app.use(verifyToken);
+app.use(sanitizeInput);
 app.use(helmet());
 
 // Routes

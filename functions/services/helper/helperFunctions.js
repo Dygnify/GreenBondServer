@@ -1,3 +1,6 @@
+const { logger } = require("firebase-functions/v1");
+const CryptoJS = require("crypto-js");
+
 function getGUID() {
 	return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
 		(
@@ -34,8 +37,49 @@ function formatCurrency(number) {
 	return integerWithCommas + decimalPart;
 }
 
+const encryptionOptions = {
+	mode: CryptoJS.mode.CBC,
+	padding: CryptoJS.pad.Pkcs7,
+};
+
+function encryptData(data) {
+	if (!data) {
+		return null;
+	}
+	try {
+		const encryptedData = CryptoJS.AES.encrypt(
+			data,
+			process.env.ENCRYPTION_KEY,
+			encryptionOptions
+		).toString();
+		return encryptedData;
+	} catch (error) {
+		logger.error(error);
+	}
+}
+
+function decryptData(encryptedData) {
+	if (!encryptedData) {
+		return null;
+	}
+	try {
+		const bytes = CryptoJS.AES.decrypt(
+			encryptedData,
+			process.env.ENCRYPTION_KEY,
+			encryptionOptions
+		);
+		const decryptedData = bytes.toString(CryptoJS.enc.Utf8);
+
+		return decryptedData;
+	} catch (error) {
+		logger.error(error);
+	}
+}
+
 module.exports = {
 	getGUID,
 	convertTimestampToDate,
 	formatCurrency,
+	encryptData,
+	decryptData,
 };

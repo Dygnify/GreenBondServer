@@ -11,6 +11,7 @@ const {
 const crypto = require("crypto");
 const { getFirebaseAdminAuth } = require("../../firebaseInit");
 const uuid = require("uuid");
+const { encryptData, decryptData } = require("../helper/helperFunctions");
 
 const Role = [
 	"Subscriber",
@@ -49,6 +50,10 @@ const createNewUser = async (user) => {
 	}
 	let data = { ...user };
 	data.email = data.email.toLowerCase();
+	if (data.profile) {
+		data.profile = encryptData(data.profile);
+	}
+
 	let action = data.action;
 	if (action) {
 		delete data.action;
@@ -139,6 +144,20 @@ const createNewUser = async (user) => {
 	return result;
 };
 
+const getDecryptedUser = (user) => {
+	if (!user) {
+		return;
+	}
+	try {
+		if (user.profile) {
+			user.profile = decryptData(user.profile);
+		}
+		return user;
+	} catch (error) {
+		logger.error(error);
+	}
+};
+
 const getUserWithEmailAndRoleOption = (email, role) => {
 	if (!email || role === undefined) {
 		return;
@@ -181,13 +200,14 @@ const getUserWithEmailAndRole = async (email, role) => {
 			getUserWithEmailAndRoleOption(email.toLowerCase(), role)
 		);
 		if (result.code === 200) {
-			return result.res.data.User;
+			return getDecryptedUser(result.res.data.User[0]);
 		}
 		return;
 	} catch (error) {
 		logger.error(error);
 	}
 };
+
 const getUserWithEmailOption = (email) => {
 	if (!email) {
 		return;
@@ -227,7 +247,7 @@ const getUserWithEmail = async (email) => {
 			getUserWithEmailOption(email.toLowerCase())
 		);
 		if (result.code === 200) {
-			return result.res.data.User;
+			return getDecryptedUser(result.res.data.User[0]);
 		}
 		return;
 	} catch (error) {
@@ -258,7 +278,7 @@ const getUser = async (Id) => {
 	try {
 		let result = await axiosHttpService(getUserOption(Id));
 		if (result.code === 200) {
-			return result.res;
+			return getDecryptedUser(result.res.data);
 		}
 		return;
 	} catch (error) {

@@ -11,7 +11,11 @@ const {
 } = require("../emailHelper");
 const { getUser, getAllUser } = require("./userAsset");
 const { getTx } = require("./transaction");
-const { convertTimestampToDate } = require("../helper/helperFunctions");
+const {
+	convertTimestampToDate,
+	encryptData,
+	decryptData,
+} = require("../helper/helperFunctions");
 const uuid = require("uuid");
 
 const createGreenBondOption = (bond) => {
@@ -36,11 +40,46 @@ const createGreenBondOption = (bond) => {
 	};
 };
 
+const eDCryptBondData = (bond, encrypt = false) => {
+	if (!bond) {
+		return;
+	}
+	try {
+		if (bond.collateral_document_description) {
+			bond.collateral_document_description = encrypt
+				? encryptData(bond.collateral_document_description)
+				: decryptData(bond.collateral_document_description);
+		}
+		if (bond.companyDetails) {
+			bond.companyDetails = encrypt
+				? encryptData(bond.companyDetails)
+				: decryptData(bond.companyDetails);
+		}
+		if (bond.loan_amount) {
+			bond.loan_amount = encrypt
+				? encryptData(bond.loan_amount)
+				: decryptData(bond.loan_amount);
+		}
+		if (bond.loan_interest) {
+			bond.loan_interest = encrypt
+				? encryptData(bond.loan_interest)
+				: decryptData(bond.loan_interest);
+		}
+		if (bond.loan_purpose) {
+			bond.loan_purpose = encrypt
+				? encryptData(bond.loan_purpose)
+				: decryptData(bond.loan_purpose);
+		}
+	} catch (error) {
+		logger.error(error);
+	}
+};
+
 const createGreenBond = async (bond) => {
 	if (!bond) {
 		return;
 	}
-	let data = bond;
+	let data = eDCryptBondData(bond, true);
 	let action = data.action;
 	if (action) {
 		delete data.action;
@@ -289,7 +328,7 @@ const getGreenBond = async ({ field, value }) => {
 	try {
 		let result = await axiosHttpService(getGreenBondOption(field, value));
 		if (result.code === 200) {
-			return result.res;
+			return eDCryptBondData(result.res);
 		}
 		return;
 	} catch (error) {
@@ -317,7 +356,7 @@ const getAllGreenBonds = async (pageSize = 500, bookmark) => {
 			getAllGreenBondsOption(pageSize, bookmark)
 		);
 		if (result.code === 200) {
-			return result.res;
+			return eDCryptBondData(result.res);
 		}
 		return;
 	} catch (error) {
@@ -378,7 +417,7 @@ const getAllBondsWithStatus = async (status) => {
 	try {
 		let result = await axiosHttpService(getBondWithStatusOption(status));
 		if (result.code === 200) {
-			return result.res;
+			return eDCryptBondData(result.res);
 		}
 		return;
 	} catch (error) {
