@@ -149,7 +149,7 @@ const getDecryptedUser = (user) => {
 		return;
 	}
 	try {
-		if (user.profile) {
+		if (user.profile !== "{}") {
 			user.profile = decryptData(user.profile);
 		}
 		return user;
@@ -355,7 +355,7 @@ const deleteUser = async (email, role) => {
 		}
 		let userResult = await getUserWithEmailAndRole(email, role);
 		if (userResult) {
-			result = await axiosHttpService(deleteUserOption(userResult[0].Id));
+			result = await axiosHttpService(deleteUserOption(userResult.Id));
 			if (result.code === 200) {
 				return { success: true };
 			}
