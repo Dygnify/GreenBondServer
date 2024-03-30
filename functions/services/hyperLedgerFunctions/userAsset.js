@@ -375,11 +375,11 @@ const forgotPassword = async (email) => {
 
 		// Get Id of user
 		let userResult = await getUserWithEmail(email);
-		if (!userResult || userResult.length <= 0) {
+		if (!userResult) {
 			return { success: false };
 		}
 
-		let user = userResult[0];
+		let user = userResult;
 
 		// Generate temporary password
 		const temporaryPassword = generateSecurePassword(10);
