@@ -123,6 +123,7 @@ const webhook = async (req, res) => {
 							maxBodyLength: Infinity,
 							headers: {
 								"Content-Type": "application/json",
+								"X-API-KEY": process.env.GREENDATA_API_KEY,
 							},
 							data: {
 								projectId: projectId,
@@ -164,6 +165,7 @@ const webhook = async (req, res) => {
 								maxBodyLength: Infinity,
 								headers: {
 									"Content-Type": "application/json",
+									"X-API-KEY": process.env.GREENDATA_API_KEY,
 								},
 								data: {
 									projectId: projectId,
