@@ -119,14 +119,18 @@ async function getProjectNFT(projectName) {
 		}
 
 		const nftId = tokenizedBond.records[0].data?.nftId;
-		let nft = await getNftFunction({
+		let nftRes = await getNftFunction({
 			functionName: "QueryGreenBondNFT",
 			args: [nftId],
 		});
-		if (!nft.success) {
+		if (!nftRes.success) {
 			return;
 		}
-		return nft.res;
+
+		return {
+			nft: nftRes.res,
+			custodian: tokenizedBond.records[0].data?.custodian,
+		};
 	} catch (error) {
 		logger.error(error);
 	}
@@ -193,7 +197,9 @@ const webhook = async (req, res) => {
 								let nftData = {
 									functionName:
 										"UpdateGreenBondNFTDynamicData",
-									identity: "custodian@gmail.com",
+									identity:
+										tokenizedBond.records[0].data
+											?.custodian,
 									args: [
 										nftId,
 										"greenDataMonitoringHashList",
@@ -231,7 +237,9 @@ const webhook = async (req, res) => {
 								nftData = {
 									functionName:
 										"UpdateGreenBondNFTDynamicData",
-									identity: "custodian@gmail.com",
+									identity:
+										tokenizedBond.records[0].data
+											?.custodian,
 									args: [
 										nftId,
 										"greenDataHashList",
@@ -249,8 +257,8 @@ const webhook = async (req, res) => {
 			}
 		} else if (req.body?.event === "GreenScoreUpdated") {
 			//get project NFT
-			let nft = await getProjectNFT(req.body?.projectId);
-			if (!nft) {
+			let { nft, custodian } = await getProjectNFT(req.body?.projectId);
+			if (!nft || !custodian) {
 				return;
 			}
 			var date = req.body?.hashWithTime?.time;
@@ -268,7 +276,7 @@ const webhook = async (req, res) => {
 
 			nftData = {
 				functionName: "UpdateGreenBondNFTDynamicData",
-				identity: "custodian@gmail.com",
+				identity: custodian,
 				args: [
 					nft.tokenId,
 					"greenScoreHashList",
