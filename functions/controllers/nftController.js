@@ -98,6 +98,40 @@ const burnNft = async (req, res) => {
 };
 
 // Webhook Request
+async function getProjectNFT(projectName) {
+	try {
+		if (!projectName) {
+			return;
+		}
+		const bond = await getGreenBond({
+			field: "loan_name",
+			value: projectName,
+		});
+
+		if (bond.count <= 0 || bond.records[0].data?.status !== 5) {
+			return;
+		}
+		const bondId = bond.records[0].id;
+
+		const tokenizedBond = await getTokenized("bondId", bondId);
+		if (tokenizedBond.count <= 0) {
+			return;
+		}
+
+		const nftId = tokenizedBond.records[0].data?.nftId;
+		let nft = await getNftFunction({
+			functionName: "QueryGreenBondNFT",
+			args: [nftId],
+		});
+		if (!nft.success) {
+			return;
+		}
+		return nft.res;
+	} catch (error) {
+		logger.error(error);
+	}
+}
+
 const webhook = async (req, res) => {
 	try {
 		if (req.body.event === "GreenDataUpdated") {
@@ -213,6 +247,35 @@ const webhook = async (req, res) => {
 					}
 				}
 			}
+		} else if (req.body?.event === "GreenScoreUpdated") {
+			//get project NFT
+			let nft = await getProjectNFT(req.body?.projectId);
+			if (!nft) {
+				return;
+			}
+			var date = req.body?.hashWithTime?.time;
+			// check for duplicacy
+			let dateExistsInNft = false;
+			nft.greenScoreHashList.forEach((element) => {
+				if (element.time === date) {
+					dateExistsInNft = true;
+					return;
+				}
+			});
+			if (dateExistsInNft) {
+				return;
+			}
+
+			nftData = {
+				functionName: "UpdateGreenBondNFTDynamicData",
+				identity: "custodian@gmail.com",
+				args: [
+					nft.tokenId,
+					"greenScoreHashList",
+					req.body?.hashWithTime,
+				],
+			};
+			await createNftFunction(nftData);
 		}
 		return res.send("Received!");
 	} catch (error) {
