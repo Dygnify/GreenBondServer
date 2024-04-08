@@ -15,6 +15,7 @@ const TokenizedBond = Joi.object({
 	totalRepaidAmount: Joi.number().required(),
 	totalRepayments: Joi.number().required(),
 	nftId: Joi.string(),
+	custodian: Joi.string().email(),
 });
 
 module.exports = TokenizedBond;
