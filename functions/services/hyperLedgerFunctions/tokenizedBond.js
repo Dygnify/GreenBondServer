@@ -15,7 +15,7 @@ const createTokenizedOption = (tokenizedBond) => {
 	return {
 		method: "put",
 		maxBodyLength: Infinity,
-		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset`,
+		url: `${process.env.SPYDRA_API_URL}/tokenize/${process.env.SPYDRA_APP_ID}/asset`,
 		headers: {
 			"Content-Type": "application/json",
 			"X-API-KEY": process.env.SPYDRA_API_KEY,
@@ -60,7 +60,7 @@ const getTokenizedOption = (field, value) => {
 	if (field === "Id") {
 		return {
 			method: "get",
-			url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset?assetType=TokenizedBond&id=${value}&depth=0`,
+			url: `${process.env.SPYDRA_API_URL}/tokenize/${process.env.SPYDRA_APP_ID}/asset?assetType=TokenizedBond&id=${value}&depth=0`,
 			headers: {
 				"X-API-KEY": process.env.SPYDRA_API_KEY,
 			},
@@ -69,7 +69,7 @@ const getTokenizedOption = (field, value) => {
 
 	return {
 		method: "get",
-		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset/all?assetType=TokenizedBond&actAs=${field}:${value}`,
+		url: `${process.env.SPYDRA_API_URL}/tokenize/${process.env.SPYDRA_APP_ID}/asset/all?assetType=TokenizedBond&actAs=${field}:${value}`,
 		headers: {
 			"X-API-KEY": process.env.SPYDRA_API_KEY,
 		},

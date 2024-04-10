@@ -17,7 +17,7 @@ const createTxOption = (transaction) => {
 	return {
 		method: "put",
 		maxBodyLength: Infinity,
-		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset`,
+		url: `${process.env.SPYDRA_API_URL}/tokenize/${process.env.SPYDRA_APP_ID}/asset`,
 		headers: {
 			"Content-Type": "application/json",
 			"X-API-KEY": process.env.SPYDRA_API_KEY,
@@ -124,7 +124,7 @@ const getTxOption = (field, value) => {
 	if (field === "Id") {
 		return {
 			method: "get",
-			url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset?assetType=Transaction&id=${value}&depth=0`,
+			url: `${process.env.SPYDRA_API_URL}/tokenize/${process.env.SPYDRA_APP_ID}/asset?assetType=Transaction&id=${value}&depth=0`,
 			headers: {
 				"X-API-KEY": process.env.SPYDRA_API_KEY,
 			},
@@ -132,7 +132,7 @@ const getTxOption = (field, value) => {
 	}
 	return {
 		method: "get",
-		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset/all?assetType=Transaction&pageSize=500&actAs=${field}:${value}`,
+		url: `${process.env.SPYDRA_API_URL}/tokenize/${process.env.SPYDRA_APP_ID}/asset/all?assetType=Transaction&pageSize=500&actAs=${field}:${value}`,
 		headers: {
 			"X-API-KEY": process.env.SPYDRA_API_KEY,
 		},
@@ -158,7 +158,7 @@ const getTx = async (field, value) => {
 const getAllTxOption = (pageSize, bookmark) => {
 	return {
 		method: "get",
-		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${
+		url: `${process.env.SPYDRA_API_URL}/tokenize/${
 			process.env.SPYDRA_APP_ID
 		}/asset/all?assetType=Transaction&pageSize=${pageSize}${
 			bookmark ? `&bookmark=${bookmark}` : ""

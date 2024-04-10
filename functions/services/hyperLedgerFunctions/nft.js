@@ -9,7 +9,7 @@ const createNftOption = (data) => {
 	return {
 		method: "post",
 		maxBodyLength: Infinity,
-		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/fabric/${process.env.SPYDRA_NFT_APP_ID}/ledger/transact`,
+		url: `${process.env.SPYDRA_API_URL}/fabric/${process.env.SPYDRA_NFT_APP_ID}/ledger/transact`,
 		headers: {
 			"Content-Type": "application/json",
 			"X-API-KEY": process.env.SPYDRA_API_KEY,
@@ -42,7 +42,7 @@ const getNftOption = (data) => {
 	return {
 		method: "post",
 		maxBodyLength: Infinity,
-		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/fabric/${process.env.SPYDRA_NFT_APP_ID}/ledger/query`,
+		url: `${process.env.SPYDRA_API_URL}/fabric/${process.env.SPYDRA_NFT_APP_ID}/ledger/query`,
 		headers: {
 			"Content-Type": "application/json",
 			"X-API-KEY": process.env.SPYDRA_API_KEY,
@@ -76,7 +76,7 @@ const burnNftOption = (data) => {
 	return {
 		method: "post",
 		maxBodyLength: Infinity,
-		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/fabric/${process.env.SPYDRA_NFT_APP_ID}/ledger/transact`,
+		url: `${process.env.SPYDRA_API_URL}/fabric/${process.env.SPYDRA_NFT_APP_ID}/ledger/transact`,
 		headers: {
 			"Content-Type": "application/json",
 			"X-API-KEY": process.env.SPYDRA_API_KEY,
