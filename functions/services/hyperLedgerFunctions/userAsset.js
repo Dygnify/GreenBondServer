@@ -35,7 +35,7 @@ const createUserOption = (user) => {
 	return {
 		method: "put",
 		maxBodyLength: Infinity,
-		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset`,
+		url: `${process.env.SPYDRA_API_URL}/tokenize/${process.env.SPYDRA_APP_ID}/asset`,
 		headers: {
 			"Content-Type": "application/json",
 			"X-API-KEY": process.env.SPYDRA_API_KEY,
@@ -181,7 +181,7 @@ const getUserWithEmailAndRoleOption = (email, role) => {
 	return {
 		method: "post",
 		maxBodyLength: Infinity,
-		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/graphql`,
+		url: `${process.env.SPYDRA_API_URL}/tokenize/${process.env.SPYDRA_APP_ID}/graphql`,
 		headers: {
 			"X-API-KEY": process.env.SPYDRA_API_KEY,
 			"Content-Type": "application/json",
@@ -228,7 +228,7 @@ const getUserWithEmailOption = (email) => {
 	return {
 		method: "post",
 		maxBodyLength: Infinity,
-		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/graphql`,
+		url: `${process.env.SPYDRA_API_URL}/tokenize/${process.env.SPYDRA_APP_ID}/graphql`,
 		headers: {
 			"X-API-KEY": process.env.SPYDRA_API_KEY,
 			"Content-Type": "application/json",
@@ -263,7 +263,7 @@ const getUserOption = (Id) => {
 
 	return {
 		method: "get",
-		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset?assetType=User&id=${Id}`,
+		url: `${process.env.SPYDRA_API_URL}/tokenize/${process.env.SPYDRA_APP_ID}/asset?assetType=User&id=${Id}`,
 		headers: {
 			"X-API-KEY": process.env.SPYDRA_API_KEY,
 		},
@@ -290,7 +290,7 @@ const getUser = async (Id) => {
 const getAllUserOption = (pageSize, bookmark) => {
 	return {
 		method: "get",
-		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${
+		url: `${process.env.SPYDRA_API_URL}/tokenize/${
 			process.env.SPYDRA_APP_ID
 		}/asset/all?assetType=User&pageSize=${pageSize}${
 			bookmark ? `&bookmark=${bookmark}` : ""
@@ -338,7 +338,7 @@ const deleteUserOption = (Id) => {
 	return {
 		method: "delete",
 		maxBodyLength: Infinity,
-		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset`,
+		url: `${process.env.SPYDRA_API_URL}/tokenize/${process.env.SPYDRA_APP_ID}/asset`,
 		headers: {
 			accept: "application/json",
 			"X-API-KEY": process.env.SPYDRA_API_KEY,

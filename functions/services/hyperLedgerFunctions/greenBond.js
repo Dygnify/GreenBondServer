@@ -31,7 +31,7 @@ const createGreenBondOption = (bond) => {
 	return {
 		method: "put",
 		maxBodyLength: Infinity,
-		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset`,
+		url: `${process.env.SPYDRA_API_URL}/tokenize/${process.env.SPYDRA_APP_ID}/asset`,
 		headers: {
 			"Content-Type": "application/json",
 			"X-API-KEY": process.env.SPYDRA_API_KEY,
@@ -299,7 +299,7 @@ const getGreenBondOption = (field, value) => {
 	if (field === "Id") {
 		return {
 			method: "get",
-			url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset?assetType=GreenBond&id=${value}&depth=0`,
+			url: `${process.env.SPYDRA_API_URL}/tokenize/${process.env.SPYDRA_APP_ID}/asset?assetType=GreenBond&id=${value}&depth=0`,
 			headers: {
 				"X-API-KEY": process.env.SPYDRA_API_KEY,
 			},
@@ -307,7 +307,7 @@ const getGreenBondOption = (field, value) => {
 	} else if (field === "loan_name") {
 		return {
 			method: "get",
-			url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset/all?assetType=GreenBond&actAs=loan_name:${value}`,
+			url: `${process.env.SPYDRA_API_URL}/tokenize/${process.env.SPYDRA_APP_ID}/asset/all?assetType=GreenBond&actAs=loan_name:${value}`,
 			headers: {
 				"X-API-KEY": process.env.SPYDRA_API_KEY,
 			},
@@ -315,7 +315,7 @@ const getGreenBondOption = (field, value) => {
 	}
 	return {
 		method: "get",
-		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/asset/all?assetType=GreenBond&actAs=borrowerId:${value}`,
+		url: `${process.env.SPYDRA_API_URL}/tokenize/${process.env.SPYDRA_APP_ID}/asset/all?assetType=GreenBond&actAs=borrowerId:${value}`,
 		headers: {
 			"X-API-KEY": process.env.SPYDRA_API_KEY,
 		},
@@ -352,7 +352,7 @@ const getGreenBond = async ({ field, value }) => {
 const getAllGreenBondsOption = (pageSize, bookmark) => {
 	return {
 		method: "get",
-		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${
+		url: `${process.env.SPYDRA_API_URL}/tokenize/${
 			process.env.SPYDRA_APP_ID
 		}/asset/all?assetType=GreenBond&pageSize=${pageSize}${
 			bookmark ? `&bookmark=${bookmark}` : ""
@@ -420,7 +420,7 @@ const getBondWithStatusOption = (status) => {
 	return {
 		method: "post",
 		maxBodyLength: Infinity,
-		url: `https://${process.env.SPYDRA_MEMBERSHIP_ID}.spydra.app/tokenize/${process.env.SPYDRA_APP_ID}/graphql`,
+		url: `${process.env.SPYDRA_API_URL}/tokenize/${process.env.SPYDRA_APP_ID}/graphql`,
 		headers: {
 			"X-API-KEY": process.env.SPYDRA_API_KEY,
 			"Content-Type": "application/json",
