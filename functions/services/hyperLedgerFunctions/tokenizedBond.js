@@ -1,6 +1,7 @@
 const { logger } = require("firebase-functions/v1");
 const { axiosHttpService } = require("../axioscall");
 const uuid = require("uuid");
+const { encryptData, decryptData } = require("../helper/helperFunctions");
 
 const createTokenizedOption = (tokenizedBond) => {
 	if (!tokenizedBond) {
@@ -28,12 +29,12 @@ const createTokenized = async (tokenizedBond) => {
 	if (!tokenizedBond) {
 		return;
 	}
-	let data = tokenizedBond;
+	let data = eDCryptTokenizedBondData(tokenizedBond, true);
 	if (!tokenizedBond.Id) {
 		const id = uuid.v4();
 		data = {
 			Id: id.toString(),
-			...tokenizedBond,
+			...data,
 			ledgerMetadata: {
 				owners: [
 					{
@@ -84,11 +85,77 @@ const getTokenized = async (field, value) => {
 	try {
 		let result = await axiosHttpService(getTokenizedOption(field, value));
 		if (result.code === 200) {
+			if (field === "Id") {
+				result.res.data = eDCryptTokenizedBondData(result.res.data);
+			} else {
+				if (result.res.count) {
+					result.res.records = result.res.records.map((element) => {
+						element.data = eDCryptTokenizedBondData(element.data);
+						return element;
+					});
+				}
+			}
+
 			return result.res;
 		}
 		return;
 	} catch (error) {
 		logger.error(error);
+	}
+};
+
+const eDCryptTokenizedBondData = (tokenizedBond, encrypt = false) => {
+	if (!tokenizedBond) {
+		return;
+	}
+	try {
+		if (tokenizedBond.bondAmount) {
+			tokenizedBond.bondAmount = encrypt
+				? encryptData(tokenizedBond.bondAmount.toString())
+				: +decryptData(tokenizedBond.bondAmount);
+		}
+		if (tokenizedBond.bondInterest) {
+			tokenizedBond.bondInterest = encrypt
+				? encryptData(tokenizedBond.bondInterest.toString())
+				: +decryptData(tokenizedBond.bondInterest);
+		}
+		if (tokenizedBond.emiAmount) {
+			tokenizedBond.emiAmount = encrypt
+				? encryptData(tokenizedBond.emiAmount)
+				: decryptData(tokenizedBond.emiAmount);
+		}
+		if (tokenizedBond.repaymentCounter) {
+			tokenizedBond.repaymentCounter = encrypt
+				? encryptData(tokenizedBond.repaymentCounter.toString())
+				: +decryptData(tokenizedBond.repaymentCounter);
+		}
+		if (tokenizedBond.repaymentStartTime) {
+			tokenizedBond.repaymentStartTime = encrypt
+				? encryptData(tokenizedBond.repaymentStartTime.toString())
+				: +decryptData(tokenizedBond.repaymentStartTime);
+		}
+		if (tokenizedBond.totalOutstandingPrincipal) {
+			tokenizedBond.totalOutstandingPrincipal = encrypt
+				? encryptData(
+						tokenizedBond.totalOutstandingPrincipal.toString()
+				  )
+				: +decryptData(tokenizedBond.totalOutstandingPrincipal);
+		}
+		if (tokenizedBond.totalRepaidAmount) {
+			tokenizedBond.totalRepaidAmount = encrypt
+				? encryptData(tokenizedBond.totalRepaidAmount.toString())
+				: +decryptData(tokenizedBond.totalRepaidAmount);
+		}
+		if (tokenizedBond.totalRepayments) {
+			tokenizedBond.totalRepayments = encrypt
+				? encryptData(tokenizedBond.totalRepayments.toString())
+				: +decryptData(tokenizedBond.totalRepayments);
+		}
+
+		return tokenizedBond;
+	} catch (error) {
+		logger.error(error);
+		return;
 	}
 };
 
