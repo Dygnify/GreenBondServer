@@ -20,23 +20,31 @@ const { formatCurrency } = require("../services/helper/helperFunctions");
 
 // Create Transaction
 const createTokenizedBond = async (req, res) => {
+	logger.info("createTokenizedBond execution started");
 	try {
 		// validate the body
 		if (!req.body) {
 			logger.error("Invalid request data");
 			response.status(400).send("Invalid data");
 		}
+		logger.info("TokenizedBond Data received: ", req.body);
 
 		const { error } = TokenizedBond.validate(req.body);
 		if (error) {
+			logger.error("TokenizedBond validation failed: ", error);
 			return res.status(400).send(error.details);
 		}
 
 		// store in hyperledger
 		var result = await createTokenized(req.body);
 		if (result.Id) {
+			logger.info(
+				"TokenizedBond successfuly created with id: ",
+				result.Id
+			);
 			return res.status(201).json(result.Id);
 		} else {
+			logger.error("Failed to create TokenizedBond");
 			return res.status(result.code).json(result.res);
 		}
 	} catch (error) {
@@ -46,6 +54,7 @@ const createTokenizedBond = async (req, res) => {
 };
 
 const getTokenizedBond = async (req, res) => {
+	logger.info("getTokenizedBond execution started");
 	try {
 		if (!req.body) {
 			logger.error("Invalid request data");
@@ -54,6 +63,7 @@ const getTokenizedBond = async (req, res) => {
 
 		var result = await getTokenized(req.body.field, req.body.value);
 		if (result) {
+			logger.info("TokenizedBond found: ", result);
 			return res.status(200).json(result);
 		}
 	} catch (error) {
@@ -63,11 +73,12 @@ const getTokenizedBond = async (req, res) => {
 };
 
 const getAllTokenizedBond = async (req, res) => {
+	logger.info("getAllTokenizedBond execution started");
 	try {
 		//status 5 represents the tokenized bonds
 		var result = await getAllBondsWithStatus(5);
-		console.log(result);
 		if (result) {
+			logger.info("TokenizedBonds found: ", result);
 			return res.status(200).json(result);
 		}
 	} catch (error) {
