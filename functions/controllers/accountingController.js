@@ -123,7 +123,7 @@ const getRepaymentAmount = async (req, res) => {
 			!req.body ||
 			!req.body.loanStartDate ||
 			!req.body.repaymentDueDate ||
-			!req.body.delayedInterest ||
+			req.body.delayedInterest == undefined ||
 			req.body.delayedInterest < 0 ||
 			!req.body.outstandingPrincipal ||
 			req.body.outstandingPrincipal <= 0 ||
