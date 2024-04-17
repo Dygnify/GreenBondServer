@@ -3,6 +3,7 @@ const { axiosHttpService } = require("../axioscall");
 const uuid = require("uuid");
 const { repayment, distributePay } = require("../emailHelper");
 const { getUser, getAllUser } = require("./userAsset");
+const { encryptData, decryptData } = require("../helper/helperFunctions");
 
 const createTxOption = (transaction) => {
 	if (!transaction) {
@@ -30,8 +31,7 @@ const createTx = async (transaction) => {
 	if (!transaction) {
 		return;
 	}
-	console.log(transaction);
-	let data = transaction;
+	let data = eDCryptTransactionData(transaction, true);
 	if (!transaction.Id) {
 		const id = uuid.v4();
 		data = {
@@ -147,6 +147,16 @@ const getTx = async (field, value) => {
 	try {
 		let result = await axiosHttpService(getTxOption(field, value));
 		if (result.code === 200) {
+			if (field === "Id") {
+				result.res.data = eDCryptTransactionData(result.res.data);
+			} else {
+				if (result.res.count) {
+					result.res.records = result.res.records.map((element) => {
+						element.data = eDCryptTransactionData(element.data);
+						return element;
+					});
+				}
+			}
 			return result.res;
 		}
 		return;
@@ -173,11 +183,65 @@ const getAllTx = async (pageSize = 500, bookmark) => {
 	try {
 		let result = await axiosHttpService(getAllTxOption(pageSize, bookmark));
 		if (result.code === 200) {
+			if (result.res.count) {
+				result.res.records = result.res.records.map((element) => {
+					element.data = eDCryptTransactionData(element.data);
+					return element;
+				});
+			}
 			return result.res;
 		}
 		return;
 	} catch (error) {
 		logger.error(error);
+	}
+};
+
+const eDCryptTransactionData = (transaction, encrypt = false) => {
+	if (!transaction) {
+		return;
+	}
+	try {
+		if (transaction.amount) {
+			transaction.amount = encrypt
+				? encryptData(transaction.amount.toString())
+				: +decryptData(transaction.amount);
+		}
+		if (transaction.benificiaryBankAccNo) {
+			transaction.benificiaryBankAccNo = encrypt
+				? encryptData(transaction.benificiaryBankAccNo)
+				: decryptData(transaction.benificiaryBankAccNo);
+		}
+		if (transaction.benificiaryName) {
+			transaction.benificiaryName = encrypt
+				? encryptData(transaction.benificiaryName)
+				: decryptData(transaction.benificiaryName);
+		}
+		if (transaction.utrNo) {
+			transaction.utrNo = encrypt
+				? encryptData(transaction.utrNo)
+				: decryptData(transaction.utrNo);
+		}
+		if (transaction.interestPortion) {
+			transaction.interestPortion = encrypt
+				? encryptData(transaction.interestPortion)
+				: decryptData(transaction.interestPortion);
+		}
+		if (transaction.principalPortion) {
+			transaction.principalPortion = encrypt
+				? encryptData(transaction.principalPortion.toString())
+				: +decryptData(transaction.principalPortion);
+		}
+		if (transaction.repaymentNumber) {
+			transaction.repaymentNumber = encrypt
+				? encryptData(transaction.repaymentNumber.toString())
+				: +decryptData(transaction.repaymentNumber);
+		}
+
+		return transaction;
+	} catch (error) {
+		logger.error(error);
+		return;
 	}
 };
 
