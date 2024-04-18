@@ -35,7 +35,10 @@ const createUser = async (req, res) => {
 			return res.status(201).json(result.Id);
 		} else {
 			logger.error("Failed to create user");
-			// await deleteUserInFirebase(req.body.email);
+			if (!req.body.Id) {
+				await deleteUserInFirebase(req.body.email);
+				logger.info("Revert Created user in firebase");
+			}
 			return res.status(result.code).json(result.res);
 		}
 	} catch (error) {
