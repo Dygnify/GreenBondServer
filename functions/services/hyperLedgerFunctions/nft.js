@@ -19,11 +19,13 @@ const createNftOption = (data) => {
 };
 
 const createNft = async (data) => {
+	logger.info("hyperLedger nft createNft execution started");
 	if (!data) {
 		return;
 	}
 	try {
 		let result = await axiosHttpService(createNftOption(data));
+		logger.info("Response from spydra: ", result);
 		if (result.code === 200) {
 			return { success: true, ...result };
 		} else {
@@ -52,11 +54,13 @@ const getNftOption = (data) => {
 };
 
 const getNft = async (data) => {
+	logger.info("hyperLedger nft getNft execution started");
 	if (!data) {
 		return;
 	}
 	try {
 		let result = await axiosHttpService(getNftOption(data));
+		logger.info("Response from spydra: ", result);
 		if (result.code === 200) {
 			return { success: true, ...result };
 		} else {
@@ -86,11 +90,13 @@ const burnNftOption = (data) => {
 };
 
 const burnNft = async (data) => {
+	logger.info("hyperLedger nft burnNft execution started");
 	if (!data) {
 		return;
 	}
 	try {
 		let result = await axiosHttpService(burnNftOption(data));
+		logger.info("Response from spydra: ", result);
 		if (result.code === 200) {
 			return { success: true, ...result };
 		} else {

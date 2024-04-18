@@ -1,5 +1,6 @@
 const nodemailer = require("nodemailer");
 const { formatCurrency } = require("./helper/helperFunctions");
+const { logger } = require("firebase-functions");
 
 const startEmailWrapper = `<!doctype html>
 <html lang="en">
@@ -642,6 +643,7 @@ const resetPasswordMail = async (name, link, email, password) => {
 };
 
 const sendEmail = async (to, subject, mainBody, cc = "", bcc = "") => {
+	logger.info("emailHelper sendEmail execution started");
 	try {
 		const info = await transporter.sendMail({
 			from: "Dygnify Ventures <hello@dygnify.com>",
@@ -651,10 +653,10 @@ const sendEmail = async (to, subject, mainBody, cc = "", bcc = "") => {
 			cc: cc,
 			bcc: bcc,
 		});
-		console.log("Message sent: " + info.messageId);
+		logger.info("Message sent: " + info.messageId);
+		logger.info("emailHelper sendEmail execution end");
 	} catch (error) {
-		console.log("Message failed");
-		console.log(error);
+		logger.error(error);
 	}
 };
 

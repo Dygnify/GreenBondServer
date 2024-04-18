@@ -1,20 +1,22 @@
 const axios = require("axios");
+const { logger } = require("firebase-functions");
 
 async function axiosHttpService(options) {
 	let d1 = new Date();
 
 	try {
 		let response = await axios(options);
-		//console.log("RESPONSE DATA " + JSON.stringify(response.data));
-
-		return {
+		const ret = {
 			url: options.url,
 			res: response.data,
 			code: response.status,
 			responsetime: timeConversion(d1, new Date()),
 		};
+		logger.info("Axios response: " + JSON.stringify(ret));
+
+		return ret;
 	} catch (error) {
-		//console.error("RESPONSE DATA " + JSON.stringify(error));
+		logger.error(error);
 
 		if (error.response && error.response.data.Status === "Error") {
 			return {

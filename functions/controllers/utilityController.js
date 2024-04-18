@@ -2,7 +2,7 @@ const { logger } = require("firebase-functions/v1");
 const { getFirebaseAdminStorage } = require("../firebaseInit");
 
 const getStorageFileSignedURL = async (req, res) => {
-	logger.info("getStorageFileSignedURL execution started");
+	logger.info("utilityController getStorageFileSignedURL execution started");
 	try {
 		// validate the file path
 		if (!req.query || !req.query.filePath) {
@@ -21,6 +21,7 @@ const getStorageFileSignedURL = async (req, res) => {
 			action: "read",
 			expires: expirationTime,
 		});
+		logger.info("utilityController getStorageFileSignedURL execution end");
 		return res.status(200).json(url);
 	} catch (error) {
 		logger.error(error);

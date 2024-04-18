@@ -26,6 +26,7 @@ const createTokenizedOption = (tokenizedBond) => {
 };
 
 const createTokenized = async (tokenizedBond) => {
+	logger.info("hyperLedger tokenizedBond createTokenized execution started");
 	if (!tokenizedBond) {
 		return;
 	}
@@ -46,6 +47,7 @@ const createTokenized = async (tokenizedBond) => {
 		};
 	}
 	let result = await axiosHttpService(createTokenizedOption(data));
+	logger.info("Response from spydra: ", result);
 	if (result.code === 201) {
 		return { Id: data.Id, ...result.res };
 	}
@@ -78,12 +80,14 @@ const getTokenizedOption = (field, value) => {
 };
 
 const getTokenized = async (field, value) => {
+	logger.info("hyperLedger tokenizedBond getTokenized execution started");
 	logger.log(field, value);
 	if (!field || !value) {
 		return;
 	}
 	try {
 		let result = await axiosHttpService(getTokenizedOption(field, value));
+		logger.info("Response from spydra: ", result);
 		if (result.code === 200) {
 			if (field === "Id") {
 				result.res.data = eDCryptTokenizedBondData(result.res.data);
@@ -105,6 +109,9 @@ const getTokenized = async (field, value) => {
 };
 
 const eDCryptTokenizedBondData = (tokenizedBond, encrypt = false) => {
+	logger.info(
+		"hyperLedger tokenizedBond eDCryptTokenizedBondData execution started"
+	);
 	if (!tokenizedBond) {
 		return;
 	}
@@ -151,7 +158,9 @@ const eDCryptTokenizedBondData = (tokenizedBond, encrypt = false) => {
 				? encryptData(tokenizedBond.totalRepayments.toString())
 				: +decryptData(tokenizedBond.totalRepayments);
 		}
-
+		logger.info(
+			"hyperLedger tokenizedBond eDCryptTokenizedBondData execution end"
+		);
 		return tokenizedBond;
 	} catch (error) {
 		logger.error(error);

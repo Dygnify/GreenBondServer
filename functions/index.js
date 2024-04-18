@@ -56,6 +56,7 @@ exports.scheduledDueDateReminder = functions
 	.region("asia-southeast1")
 	.pubsub.schedule("30 5 * * *")
 	.onRun(async (context) => {
-		console.log("scheduledDueDateReminder started");
+		functions.logger.info("scheduledDueDateReminder started");
 		sendDueDateReminderMail();
+		functions.logger.info("scheduledDueDateReminder end");
 	});

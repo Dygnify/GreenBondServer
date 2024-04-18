@@ -45,6 +45,7 @@ const createUserOption = (user) => {
 };
 
 const createNewUser = async (user) => {
+	logger.info("hyperLedger userAsset createNewUser execution started");
 	if (!user) {
 		return;
 	}
@@ -90,6 +91,7 @@ const createNewUser = async (user) => {
 		};
 	}
 	let result = await axiosHttpService(createUserOption(data));
+	logger.info("Response from spydra: ", result);
 	if (result.code === 201) {
 		// Get admins
 		let admins = [];
@@ -139,6 +141,7 @@ const createNewUser = async (user) => {
 				process.env.DEPLOYED_APP_URL
 			);
 		}
+		logger.info("hyperLedger userAsset createNewUser execution end");
 		return { Id: data.Id, ...result.res };
 	}
 	return result;
@@ -191,7 +194,10 @@ const getUserWithEmailAndRoleOption = (email, role) => {
 };
 
 const getUserWithEmailAndRole = async (email, role) => {
-	logger.log(email, role);
+	logger.info(
+		"hyperLedger userAsset getUserWithEmailAndRole execution started"
+	);
+	logger.log(`email: ${email}, role: ${role}`);
 	if (!email || role === undefined) {
 		return;
 	}
@@ -199,7 +205,11 @@ const getUserWithEmailAndRole = async (email, role) => {
 		let result = await axiosHttpService(
 			getUserWithEmailAndRoleOption(email.toLowerCase(), role)
 		);
+		logger.info("Response from spydra: ", result);
 		if (result.code === 200) {
+			logger.info(
+				"hyperLedger userAsset getUserWithEmailAndRole execution end"
+			);
 			return getDecryptedUser(result.res.data.User[0]);
 		}
 		return;
@@ -238,7 +248,8 @@ const getUserWithEmailOption = (email) => {
 };
 
 const getUserWithEmail = async (email) => {
-	logger.log(email);
+	logger.info("hyperLedger userAsset getUserWithEmail execution started");
+	logger.log(`email: ${email}`);
 	if (!email) {
 		return;
 	}
@@ -246,7 +257,9 @@ const getUserWithEmail = async (email) => {
 		let result = await axiosHttpService(
 			getUserWithEmailOption(email.toLowerCase())
 		);
+		logger.info("Response from spydra: ", result);
 		if (result.code === 200) {
+			logger.info("hyperLedger userAsset getUserWithEmail execution end");
 			return getDecryptedUser(result.res.data.User[0]);
 		}
 		return;
@@ -271,14 +284,17 @@ const getUserOption = (Id) => {
 };
 
 const getUser = async (Id) => {
-	logger.log(Id);
+	logger.info("hyperLedger userAsset getUser execution started");
+	logger.log(`Id: ${Id}`);
 	if (!Id) {
 		return;
 	}
 	try {
 		let result = await axiosHttpService(getUserOption(Id));
+		logger.info("Response from spydra: ", result);
 		if (result.code === 200) {
 			result.res.data = getDecryptedUser(result.res.data);
+			logger.info("hyperLedger userAsset getUser execution end");
 			return result.res;
 		}
 		return;
@@ -302,10 +318,12 @@ const getAllUserOption = (pageSize, bookmark) => {
 };
 
 const getAllUser = async (pageSize = 500, bookmark) => {
+	logger.info("hyperLedger userAsset getAllUser execution started");
 	try {
 		let result = await axiosHttpService(
 			getAllUserOption(pageSize, bookmark)
 		);
+		logger.info("Response from spydra: ", result);
 		if (result.code === 200) {
 			if (result.res.count) {
 				result.res.records = result.res.records.map((element) => {
@@ -317,6 +335,7 @@ const getAllUser = async (pageSize = 500, bookmark) => {
 					return element;
 				});
 			}
+			logger.info("hyperLedger userAsset getAllUser execution end");
 			return result.res;
 		}
 		return;
@@ -349,14 +368,18 @@ const deleteUserOption = (Id) => {
 };
 
 const deleteUser = async (email, role) => {
+	logger.info("hyperLedger userAsset deleteUser execution started");
+	logger.info(`email: ${email}, role: ${role}`);
 	try {
 		if (!email || role === undefined) {
 			return;
 		}
 		let userResult = await getUserWithEmailAndRole(email, role);
+		logger.info("Response from spydra: ", userResult);
 		if (userResult) {
 			result = await axiosHttpService(deleteUserOption(userResult.Id));
 			if (result.code === 200) {
+				logger.info("hyperLedger userAsset deleteUser execution end");
 				return { success: true };
 			}
 		}
@@ -368,6 +391,8 @@ const deleteUser = async (email, role) => {
 };
 
 const forgotPassword = async (email) => {
+	logger.info("hyperLedger userAsset forgotPassword execution started");
+	logger.info(`email: ${email}`);
 	try {
 		if (!email) {
 			return;
@@ -376,6 +401,7 @@ const forgotPassword = async (email) => {
 		// Get Id of user
 		let userResult = await getUserWithEmail(email);
 		if (!userResult) {
+			logger.info("User with email not found");
 			return { success: false };
 		}
 
@@ -405,9 +431,11 @@ const forgotPassword = async (email) => {
 		// Update backend to show change password when user login
 		user.isNewUser = true;
 		const result = await createNewUser(user);
+		logger("Response from Spydra: ", result);
 		if (!result.Id) {
 			return { success: false };
 		}
+		logger.info("hyperLedger userAsset forgotPassword execution end");
 		return { success: true };
 	} catch (error) {
 		logger.error(error);
@@ -416,22 +444,31 @@ const forgotPassword = async (email) => {
 };
 
 function generateSecurePassword(length) {
-	// Define the character pool for the password
-	const characterPool =
-		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()";
+	logger.info(
+		"hyperLedger userAsset generateSecurePassword execution started"
+	);
+	try {
+		// Define the character pool for the password
+		const characterPool =
+			"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()";
 
-	// Initialize an empty password string
-	let password = "";
+		// Initialize an empty password string
+		let password = "";
 
-	// Generate random characters from the pool
-	for (let i = 0; i < length; i++) {
-		// Use `crypto.randomInt` to generate cryptographically secure random number as charset index
-		const charsetLength = characterPool.length;
-		const randomIndex = crypto.randomInt(charsetLength);
-		password += characterPool[randomIndex];
+		// Generate random characters from the pool
+		for (let i = 0; i < length; i++) {
+			// Use `crypto.randomInt` to generate cryptographically secure random number as charset index
+			const charsetLength = characterPool.length;
+			const randomIndex = crypto.randomInt(charsetLength);
+			password += characterPool[randomIndex];
+		}
+		logger.info(
+			"hyperLedger userAsset generateSecurePassword execution end"
+		);
+		return password;
+	} catch (error) {
+		logger.error(error);
 	}
-
-	return password;
 }
 
 module.exports = {

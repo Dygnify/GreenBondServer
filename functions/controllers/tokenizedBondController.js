@@ -20,6 +20,9 @@ const { formatCurrency } = require("../services/helper/helperFunctions");
 
 // Create Transaction
 const createTokenizedBond = async (req, res) => {
+	logger.info(
+		"tokenizedBondController createTokenizedBond execution started"
+	);
 	try {
 		// validate the body
 		if (!req.body) {
@@ -29,11 +32,13 @@ const createTokenizedBond = async (req, res) => {
 
 		const { error } = TokenizedBond.validate(req.body);
 		if (error) {
+			logger.error(error);
 			return res.status(400).send(error.details);
 		}
 
 		// store in hyperledger
 		var result = await createTokenized(req.body);
+		logger.info("Creat Bond response from Spydra: ", result);
 		if (result.Id) {
 			return res.status(201).json(result.Id);
 		} else {
@@ -46,6 +51,7 @@ const createTokenizedBond = async (req, res) => {
 };
 
 const getTokenizedBond = async (req, res) => {
+	logger.info("tokenizedBondController getTokenizedBond execution started");
 	try {
 		if (!req.body) {
 			logger.error("Invalid request data");
@@ -53,6 +59,7 @@ const getTokenizedBond = async (req, res) => {
 		}
 
 		var result = await getTokenized(req.body.field, req.body.value);
+		logger.info("Response: ", result);
 		if (result) {
 			return res.status(200).json(result);
 		}
@@ -63,10 +70,13 @@ const getTokenizedBond = async (req, res) => {
 };
 
 const getAllTokenizedBond = async (req, res) => {
+	logger.info(
+		"tokenizedBondController getAllTokenizedBond execution started"
+	);
 	try {
 		//status 5 represents the tokenized bonds
 		var result = await getAllBondsWithStatus(5);
-		console.log(result);
+		logger.info("Response: ", result);
 		if (result) {
 			return res.status(200).json(result);
 		}
@@ -77,7 +87,9 @@ const getAllTokenizedBond = async (req, res) => {
 };
 
 const sendDueDateReminderMail = async () => {
-	logger.info("sendDueDateReminderMail started");
+	logger.info(
+		"tokenizedBondController sendDueDateReminderMail execution started"
+	);
 	try {
 		// get all the tokenized bonds
 		var res = await getAllBondsWithStatus(5);
@@ -149,6 +161,9 @@ const sendDueDateReminderMail = async () => {
 						mainBody,
 						profile.email,
 						admins
+					);
+					logger.info(
+						"tokenizedBondController sendDueDateReminderMail execution end"
 					);
 				}
 			} catch (error) {

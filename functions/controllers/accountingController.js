@@ -11,6 +11,7 @@ const xirr = require("xirr");
 const CashFlowParams = require("../models/cashflowParams");
 
 const getLoanEMI = async (req, res) => {
+	logger.info("accountingController getLoanEMI execution start");
 	try {
 		// validate the body
 		if (!req.body) {
@@ -21,6 +22,7 @@ const getLoanEMI = async (req, res) => {
 		logger.info("Loan data received: ", req.body);
 		const { error } = Loan.validate(req.body);
 		if (error) {
+			logger.error(error);
 			return res.status(400).send(error.details);
 		}
 
@@ -43,15 +45,20 @@ const getLoanEMI = async (req, res) => {
 				dailyInterest *
 				req.body.repaymentFrequency;
 		}
-
+		logger.info(`emi: ${emi}`);
+		logger.info("accountingController getLoanEMI execution end");
 		return res.status(200).json(emi);
 	} catch (error) {
 		logger.error(error);
 	}
+
 	return res.status(400).json("Invalid request");
 };
 
 const getTermLoanInterestComponentOfEMI = async (req, res) => {
+	logger.info(
+		"accountingController getTermLoanInterestComponentOfEMI execution start"
+	);
 	try {
 		// validate the body
 		if (
@@ -71,6 +78,10 @@ const getTermLoanInterestComponentOfEMI = async (req, res) => {
 		const dailyRate = req.body.interestRate / 100 / 365;
 		let intrest =
 			req.body.outstandingPrincipal * dailyRate * req.body.durationInDays;
+		logger.info(`intrest: ${intrest}`);
+		logger.info(
+			"accountingController getTermLoanInterestComponentOfEMI execution end"
+		);
 		return res.status(200).json(intrest);
 	} catch (error) {
 		logger.error(error);
@@ -79,6 +90,7 @@ const getTermLoanInterestComponentOfEMI = async (req, res) => {
 };
 
 const getNextRepaymentDate = async (req, res) => {
+	logger.info("accountingController getNextRepaymentDate execution start");
 	try {
 		// validate the body
 		if (
@@ -108,7 +120,8 @@ const getNextRepaymentDate = async (req, res) => {
 			pad(repaymentDate.getMonth() + 1),
 			repaymentDate.getFullYear(),
 		].join("/");
-
+		logger.info(`repaymentDisplayDate: ${repaymentDisplayDate}`);
+		logger.info("accountingController getNextRepaymentDate execution end");
 		return res.status(200).json(repaymentDate, repaymentDisplayDate);
 	} catch (error) {
 		logger.error(error);
@@ -117,6 +130,7 @@ const getNextRepaymentDate = async (req, res) => {
 };
 
 const getRepaymentAmount = async (req, res) => {
+	logger.info("accountingController getRepaymentAmount execution start");
 	try {
 		// validate the body
 		if (
@@ -166,7 +180,8 @@ const getRepaymentAmount = async (req, res) => {
 					req.body.loanInterest) /
 					36500;
 		}
-
+		logger.info("EMI Amount: ", finalEmi);
+		logger.info("accountingController getRepaymentAmount execution end");
 		return res.status(200).json(finalEmi);
 	} catch (error) {
 		logger.error(error);
@@ -175,6 +190,9 @@ const getRepaymentAmount = async (req, res) => {
 };
 
 const getTranchwiseYieldPercentage = async (req, res) => {
+	logger.info(
+		"accountingController getTranchwiseYieldPercentage execution start"
+	);
 	try {
 		// validate the body
 		if (
@@ -210,6 +228,7 @@ const getTranchwiseYieldPercentage = async (req, res) => {
 			}
 			const { error } = Tranch.validate(tranch);
 			if (error) {
+				logger.error(error);
 				return res.status(400).send(error.details);
 			}
 
@@ -261,6 +280,10 @@ const getTranchwiseYieldPercentage = async (req, res) => {
 			}
 			tranchwiseYield.push({ ...tranch, yield });
 		});
+		logger.info("tranchwise yield: ", tranchwiseYield);
+		logger.info(
+			"accountingController getTranchwiseYieldPercentage execution end"
+		);
 		return res.status(200).json(tranchwiseYield);
 	} catch (error) {
 		logger.error(error);
@@ -279,6 +302,9 @@ function generateTermLoanCashflows(
 	juniorTranchFeePercentage,
 	JuniorPrincipalFloatInterestPercentage
 ) {
+	logger.info(
+		"accountingController generateTermLoanCashflows execution start"
+	);
 	try {
 		// validate the inputs
 		if (
@@ -301,6 +327,7 @@ function generateTermLoanCashflows(
 			JuniorPrincipalFloatInterestPercentage == undefined ||
 			JuniorPrincipalFloatInterestPercentage < 0
 		) {
+			logger.error("Invalid parameters");
 			return undefined;
 		}
 
@@ -323,6 +350,9 @@ function generateTermLoanCashflows(
 		const nextRepaymentMonth = paymentFrequencyInDays / 30;
 		let nextEmiDate = addMonthsToDate(disbursementDate, nextRepaymentMonth);
 		if (!nextEmiDate || dailyInterestRate < 0) {
+			logger.error(
+				`Invalid next EMI date ${nextEmiDate} or daily interest rate ${dailyInterestRate}`
+			);
 			return undefined;
 		}
 		let lastEmiDate = disbursementDate;
@@ -446,6 +476,9 @@ function generateTermLoanCashflows(
 			nextEmiDate = addMonthsToDate(disbursementDate, nextRepaymentMonth);
 		}
 
+		logger.info(
+			"accountingController generateTermLoanCashflows execution end"
+		);
 		return {
 			amortisationSchedule,
 			cashFlow,
@@ -461,15 +494,19 @@ function generateTermLoanCashflows(
 }
 
 const getTermLoanAmortisationSchedule = async (req, res) => {
+	logger.info(
+		"accountingController getTermLoanAmortisationSchedule execution start"
+	);
 	try {
 		// validate the body
 		if (!req.body) {
-			logger.error("Invalid request data");
+			logger.error("Invalid request data body is null");
 			return res.status(400).send("Invalid data");
 		}
 
 		const { error } = CashFlowParams.validate(req.body);
 		if (error) {
+			logger.error(error);
 			return res.status(400).send(error.details);
 		}
 
@@ -513,17 +550,19 @@ const getTermLoanAmortisationSchedule = async (req, res) => {
 		}
 
 		// logs
-		console.log("Loan Cashflows:");
+		logger.info("Loan Cashflows:");
 		console.table(amortisationSchedule);
 		console.table(cashFlow);
-		console.log("Borrower XIRR : ", rate * 100);
+		logger.info("Borrower XIRR : ", rate * 100);
 		console.table(seniorAmortisationSchedule);
 		console.table(seniorInvestorCashFlow);
-		console.log("Senior XIRR : ", seniorXirr);
+		logger.info("Senior XIRR : ", seniorXirr);
 		console.table(juniorAmortisationSchedule);
 		console.table(juniorInvestorCashFlow);
-		console.log("Junior XIRR : ", juniorXirr);
-
+		logger.info("Junior XIRR : ", juniorXirr);
+		logger.info(
+			"accountingController getTermLoanAmortisationSchedule execution end"
+		);
 		return res.status(200).json({
 			amortisationSchedule,
 			cashFlow,
@@ -549,6 +588,9 @@ function generateBulletLoanCashflows(
 	juniorTranchFeePercentage,
 	JuniorPrincipalFloatInterestPercentage
 ) {
+	logger.info(
+		"accountingController generateBulletLoanCashflows execution start"
+	);
 	try {
 		// validate the inputs
 		if (
@@ -571,6 +613,7 @@ function generateBulletLoanCashflows(
 			JuniorPrincipalFloatInterestPercentage == undefined ||
 			JuniorPrincipalFloatInterestPercentage < 0
 		) {
+			logger.error("Invalid parameters");
 			return undefined;
 		}
 
@@ -583,6 +626,9 @@ function generateBulletLoanCashflows(
 		const nextRepaymentMonth = paymentFrequencyInDays / 30;
 		let nextEmiDate = addMonthsToDate(disbursementDate, nextRepaymentMonth);
 		if (!nextEmiDate || dailyInterestRate < 0) {
+			logger.error(
+				`Invalid next EMI date ${nextEmiDate} or daily interest rate ${dailyInterestRate}`
+			);
 			return undefined;
 		}
 		let lastEmiDate = disbursementDate;
@@ -701,7 +747,9 @@ function generateBulletLoanCashflows(
 			lastEmiDate = nextEmiDate;
 			nextEmiDate = addMonthsToDate(disbursementDate, nextRepaymentMonth);
 		}
-
+		logger.info(
+			"accountingController generateBulletLoanCashflows execution end"
+		);
 		return {
 			amortisationSchedule,
 			cashFlow,
@@ -717,15 +765,19 @@ function generateBulletLoanCashflows(
 }
 
 const getBulletLoanAmortisationSchedule = async (req, res) => {
+	logger.info(
+		"accountingController getBulletLoanAmortisationSchedule execution start"
+	);
 	try {
 		// validate the body
 		if (!req.body) {
-			logger.error("Invalid request data");
+			logger.error("Invalid request data body is null");
 			return res.status(400).send("Invalid data");
 		}
 
 		const { error } = CashFlowParams.validate(req.body);
 		if (error) {
+			logger.error(error);
 			return res.status(400).send(error.details);
 		}
 
@@ -769,17 +821,19 @@ const getBulletLoanAmortisationSchedule = async (req, res) => {
 		}
 
 		// logs
-		console.log("Loan Cashflows:");
+		logger.info("Loan Cashflows:");
 		console.table(amortisationSchedule);
 		console.table(cashFlow);
-		console.log("Borrower XIRR : ", rate * 100);
+		logger.info("Borrower XIRR : ", rate * 100);
 		console.table(seniorAmortisationSchedule);
 		console.table(seniorInvestorCashFlow);
-		console.log("Senior XIRR : ", seniorXirr);
+		logger.info("Senior XIRR : ", seniorXirr);
 		console.table(juniorAmortisationSchedule);
 		console.table(juniorInvestorCashFlow);
-		console.log("Junior XIRR : ", juniorXirr);
-
+		logger.info("Junior XIRR : ", juniorXirr);
+		logger.info(
+			"accountingController getBulletLoanAmortisationSchedule execution end"
+		);
 		return res.status(200).json({
 			amortisationSchedule,
 			cashFlow,
