@@ -14,6 +14,7 @@ const CryptoJS = require("crypto-js");
 
 // Create bond
 const createNft = async (req, res) => {
+	logger.info("nftController createNft execution started");
 	try {
 		// validate the body
 		if (!req.body) {
@@ -23,11 +24,13 @@ const createNft = async (req, res) => {
 
 		const { error } = Nft.validate(req.body);
 		if (error) {
+			logger.error("NFT validation error: ", error);
 			return res.status(400).send(error.details);
 		}
 
 		// store in hyperledger
 		var result = await createNftFunction(req.body);
+		logger.info("Create NFT result: ", result);
 		if (result.success) {
 			return res
 				.status(200)
@@ -45,6 +48,7 @@ const createNft = async (req, res) => {
 
 // Get list of bonds for an user
 const getNft = async (req, res) => {
+	logger.info("nftController getNft execution started");
 	try {
 		if (!req.body) {
 			logger.error("Invalid request data");
@@ -52,6 +56,7 @@ const getNft = async (req, res) => {
 		}
 
 		var result = await getNftFunction(req.body);
+		logger.info("get NFT result: ", result);
 		if (result.success) {
 			return res
 				.status(200)
@@ -68,6 +73,7 @@ const getNft = async (req, res) => {
 };
 
 const burnNft = async (req, res) => {
+	logger.info("nftController burnNft execution started");
 	try {
 		// validate the body
 		if (!req.body) {
@@ -77,11 +83,13 @@ const burnNft = async (req, res) => {
 
 		const { error } = Nft.validate(req.body);
 		if (error) {
+			logger.error("Validation error: ", error);
 			return res.status(400).send(error.details);
 		}
 
 		// store in hyperledger
 		var result = await burnNftFunction(req.body);
+		logger.info("Burn Nft result: ", result);
 		if (result.success) {
 			return res
 				.status(200)
@@ -99,6 +107,7 @@ const burnNft = async (req, res) => {
 
 // Webhook Request
 async function getProjectNFT(projectName) {
+	logger.info("nftController getProjectNft execution started");
 	try {
 		if (!projectName) {
 			return;
@@ -107,14 +116,17 @@ async function getProjectNFT(projectName) {
 			field: "loan_name",
 			value: projectName,
 		});
-
+		logger.info("Bond received: ", bond);
 		if (bond.count <= 0 || bond.records[0].data?.status !== 5) {
+			logger.info("return from function");
 			return;
 		}
 		const bondId = bond.records[0].id;
 
 		const tokenizedBond = await getTokenized("bondId", bondId);
+		logger.info("Tokenized bond received: ", tokenizedBond);
 		if (tokenizedBond.count <= 0) {
+			logger.info("return from function");
 			return;
 		}
 
@@ -123,7 +135,9 @@ async function getProjectNFT(projectName) {
 			functionName: "QueryGreenBondNFT",
 			args: [nftId],
 		});
+		logger.info("Nft response: ", nftRes);
 		if (!nftRes.success) {
+			logger.info("return from function");
 			return;
 		}
 
@@ -137,6 +151,7 @@ async function getProjectNFT(projectName) {
 }
 
 const webhook = async (req, res) => {
+	logger.info("nftController webhook execution started");
 	try {
 		if (req.body.event === "GreenDataUpdated") {
 			const projectId = req.body.projectId;
@@ -144,16 +159,19 @@ const webhook = async (req, res) => {
 				field: "loan_name",
 				value: projectId,
 			});
+			logger.info("Bond received: ", bond);
 			if (bond.count) {
 				const bondId = bond.records[0].id;
 				if (bond.records[0].data.status === 5) {
 					const tokenizedBond = await getTokenized("bondId", bondId);
+					logger.info("tokenized bond received: ", tokenizedBond);
 					if (tokenizedBond.count) {
 						const nftId = tokenizedBond.records[0].data.nftId;
 						let nft = await getNftFunction({
 							functionName: "QueryGreenBondNFT",
 							args: [nftId],
 						});
+						logger.info("nft response: ", nft);
 						if (nft.success) {
 							nft = nft.res;
 							const monitoringOptions = {
@@ -182,6 +200,9 @@ const webhook = async (req, res) => {
 								(element) => {
 									if (element.time === date) {
 										dateExistsInNft = true;
+										logger.info(
+											"date already exist in nft, returning"
+										);
 										return;
 									}
 								}
@@ -259,6 +280,7 @@ const webhook = async (req, res) => {
 			//get project NFT
 			let { nft, custodian } = await getProjectNFT(req.body?.projectId);
 			if (!nft || !custodian) {
+				logger.info("nft not found or custodian is not valid");
 				return;
 			}
 			var date = req.body?.hashWithTime?.time;
@@ -267,6 +289,9 @@ const webhook = async (req, res) => {
 			nft.greenScoreHashList.forEach((element) => {
 				if (element.time === date) {
 					dateExistsInNft = true;
+					logger.info(
+						"score data for the date already exists, returning"
+					);
 					return;
 				}
 			});

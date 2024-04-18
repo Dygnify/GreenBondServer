@@ -28,6 +28,7 @@ const createTxOption = (transaction) => {
 };
 
 const createTx = async (transaction) => {
+	logger.info("hyperLedger transaction createTx execution started");
 	if (!transaction) {
 		return;
 	}
@@ -50,6 +51,7 @@ const createTx = async (transaction) => {
 		};
 	}
 	let result = await axiosHttpService(createTxOption(data));
+	logger.info("Response from spydra: ", result);
 	if (result.code === 201) {
 		let admins = [];
 		const adminResult = await getAllUser();
@@ -111,6 +113,7 @@ const createTx = async (transaction) => {
 				);
 			}
 		}
+		logger.info("hyperLedger transaction createTx execution end");
 		return { Id: data.Id, ...result.res };
 	}
 	return result;
@@ -140,12 +143,14 @@ const getTxOption = (field, value) => {
 };
 
 const getTx = async (field, value) => {
-	logger.log(field, value);
+	logger.info("hyperLedger transaction getTx execution started");
+	logger.log(`field: ${field}, value: ${value}`);
 	if (!field || !value) {
 		return;
 	}
 	try {
 		let result = await axiosHttpService(getTxOption(field, value));
+		logger.info("Response from spydra: ", result);
 		if (result.code === 200) {
 			if (field === "Id") {
 				result.res.data = eDCryptTransactionData(result.res.data);
@@ -157,6 +162,7 @@ const getTx = async (field, value) => {
 					});
 				}
 			}
+			logger.info("hyperLedger transaction getTx execution end");
 			return result.res;
 		}
 		return;
@@ -180,8 +186,10 @@ const getAllTxOption = (pageSize, bookmark) => {
 };
 
 const getAllTx = async (pageSize = 500, bookmark) => {
+	logger.info("hyperLedger transaction getAllTx execution started");
 	try {
 		let result = await axiosHttpService(getAllTxOption(pageSize, bookmark));
+		logger.info("Response from spydra: ", result);
 		if (result.code === 200) {
 			if (result.res.count) {
 				result.res.records = result.res.records.map((element) => {
@@ -189,6 +197,7 @@ const getAllTx = async (pageSize = 500, bookmark) => {
 					return element;
 				});
 			}
+			logger.info("hyperLedger transaction getAllTx execution end");
 			return result.res;
 		}
 		return;
@@ -198,6 +207,9 @@ const getAllTx = async (pageSize = 500, bookmark) => {
 };
 
 const eDCryptTransactionData = (transaction, encrypt = false) => {
+	logger.info(
+		"hyperLedger transaction eDCryptTransactionData execution started"
+	);
 	if (!transaction) {
 		return;
 	}
@@ -237,7 +249,9 @@ const eDCryptTransactionData = (transaction, encrypt = false) => {
 				? encryptData(transaction.repaymentNumber.toString())
 				: +decryptData(transaction.repaymentNumber);
 		}
-
+		logger.info(
+			"hyperLedger transaction eDCryptTransactionData execution end"
+		);
 		return transaction;
 	} catch (error) {
 		logger.error(error);

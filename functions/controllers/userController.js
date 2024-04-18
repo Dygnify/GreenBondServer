@@ -13,7 +13,7 @@ const { getFirebaseAdminAuth } = require("../firebaseInit");
 
 // Create post
 const createUser = async (req, res) => {
-	logger.info("createUser execution started");
+	logger.info("userController createUser execution started");
 	try {
 		// validate the body
 		if (!req.body) {
@@ -21,7 +21,6 @@ const createUser = async (req, res) => {
 			response.status(400).send("Invalid data");
 		}
 
-		logger.info("User data received: ", req.body);
 		const { error } = User.validate(req.body);
 		if (error) {
 			logger.error("User validation failed: ", error);
@@ -34,7 +33,7 @@ const createUser = async (req, res) => {
 			logger.info("User successfuly created with id: ", result.Id);
 			return res.status(201).json(result.Id);
 		} else {
-			logger.error("Failed to create user");
+			logger.error("Failed to create user with response: ", result);
 			if (!req.body.Id) {
 				await deleteUserInFirebase(req.body.email);
 				logger.info("Revert Created user in firebase");
@@ -50,7 +49,7 @@ const createUser = async (req, res) => {
 
 // Get list of users
 const getUsers = async (req, res) => {
-	logger.info("getUser execution started");
+	logger.info("userController getUsers execution started");
 	try {
 		if (!req.body) {
 			logger.error("Request body not available");
@@ -87,7 +86,7 @@ const getUsers = async (req, res) => {
 
 // Get list of posts
 const getAllUsers = async (req, res) => {
-	logger.info("getAllUsers execution started");
+	logger.info("userController getAllUsers execution started");
 	try {
 		let result;
 		result = await getAllUser(req.body?.pageSize, req.body?.bookmark);
@@ -103,7 +102,7 @@ const getAllUsers = async (req, res) => {
 };
 
 const getUserAccountStatus = async (req, res) => {
-	logger.info("getUserAccountStatus execution started");
+	logger.info("userController getUserAccountStatus execution started");
 	try {
 		if (!req.body.email) {
 			logger.error("User validation failed: email field required");
@@ -125,7 +124,7 @@ const getUserAccountStatus = async (req, res) => {
 };
 
 const enableDisableUserAccount = async (req, res) => {
-	logger.info("enableDisableUserAccount execution started");
+	logger.info("userController enableDisableUserAccount execution started");
 	try {
 		if (!req.body.email) {
 			logger.error("User validation failed: email field required");
@@ -163,7 +162,7 @@ const enableDisableUserAccount = async (req, res) => {
 };
 
 const deleteUserAccount = async (req, res) => {
-	logger.info("deleteUserAccount execution started");
+	logger.info("userController deleteUserAccount execution started");
 	try {
 		if (!req.body.email || req.body.role === undefined) {
 			logger.error("User validation failed");
@@ -178,7 +177,7 @@ const deleteUserAccount = async (req, res) => {
 				message: "Successfully deleted User",
 			});
 		} else {
-			logger.error("Unable to delete User account");
+			logger.error("Unable to delete User account. Error: ", result);
 			res.status(400).json({
 				success: false,
 				message: "Unable to delete User account",
@@ -191,6 +190,7 @@ const deleteUserAccount = async (req, res) => {
 };
 
 const forgotUserPassword = async (req, res) => {
+	logger.info("userController forgotUserPassword execution started");
 	try {
 		if (!req.body.email) {
 			logger.error("User validation failed");
@@ -198,13 +198,13 @@ const forgotUserPassword = async (req, res) => {
 		}
 		const result = await forgotPassword(req.body.email);
 		if (result.success) {
-			logger.info("Password reset successful");
+			logger.info("Password reset successful. Response: ", result);
 			return res.json({
 				...result,
 				message: "Password reset successful",
 			});
 		} else {
-			logger.error("Failed to reset password");
+			logger.error("Failed to reset password. Response: ", result);
 			res.status(400).json({
 				success: false,
 				message: "Failed to reset password",

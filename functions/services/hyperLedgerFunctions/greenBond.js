@@ -78,6 +78,7 @@ const eDCryptBondData = (bond, encrypt = false) => {
 };
 
 const createGreenBond = async (bond) => {
+	logger.info("hyperLedger greenBond createGreenBond execution started");
 	if (!bond) {
 		return;
 	}
@@ -103,6 +104,7 @@ const createGreenBond = async (bond) => {
 		};
 	}
 	let result = await axiosHttpService(createGreenBondOption(data));
+	logger.info("Response from Spydra: ", result);
 	if (result.code === 201) {
 		const res = await getUser(bond.borrowerId.toString());
 		const profile = JSON.parse(res.data.profile);
@@ -286,6 +288,7 @@ const createGreenBond = async (bond) => {
 					break;
 			}
 		}
+		logger.info("hyperLedger greenBond createGreenBond execution end");
 		return { Id: data.Id, ...result.res };
 	}
 	return result;
@@ -323,12 +326,14 @@ const getGreenBondOption = (field, value) => {
 };
 
 const getGreenBond = async ({ field, value }) => {
+	logger.info("hyperLedger greenBond getGreenBond execution started");
 	logger.log(field, value);
 	if (!field || !value) {
 		return;
 	}
 	try {
 		let result = await axiosHttpService(getGreenBondOption(field, value));
+		logger.info("Response from spydra: ", result);
 		if (result.code === 200) {
 			let res = result.res;
 			if (field === "Id") {
@@ -341,6 +346,7 @@ const getGreenBond = async ({ field, value }) => {
 					});
 				}
 			}
+			logger.info("hyperLedger greenBond getGreenBond execution end");
 			return res;
 		}
 		return;
@@ -364,10 +370,12 @@ const getAllGreenBondsOption = (pageSize, bookmark) => {
 };
 
 const getAllGreenBonds = async (pageSize = 500, bookmark) => {
+	logger.info("hyperLedger greenBond getAllGreenBonds execution started");
 	try {
 		let result = await axiosHttpService(
 			getAllGreenBondsOption(pageSize, bookmark)
 		);
+		logger.info("Response from spydra: ", result);
 		if (result.code === 200) {
 			let res = result.res;
 			if (res.count) {
@@ -376,6 +384,7 @@ const getAllGreenBonds = async (pageSize = 500, bookmark) => {
 					return element;
 				});
 			}
+			logger.info("hyperLedger greenBond getAllGreenBonds execution end");
 			return res;
 		}
 		return;
@@ -385,6 +394,9 @@ const getAllGreenBonds = async (pageSize = 500, bookmark) => {
 };
 
 const getSubscribersFromBondId = async (bondId) => {
+	logger.info(
+		"hyperLedger greenBond getSubscribersFromBondId execution started"
+	);
 	let transactions = await getTx("bondId", bondId);
 	transactions = transactions.records ? transactions.records : [];
 	transactions = transactions.map((tx) => tx.data);
@@ -398,6 +410,8 @@ const getSubscribersFromBondId = async (bondId) => {
 		subscribersArray.push(res.data.email);
 	}
 	subscribersArray = [...new Set(subscribersArray)];
+	logger.info("Subscriber array: ", subscribersArray);
+	logger.info("hyperLedger greenBond getSubscribersFromBondId execution end");
 	return subscribersArray;
 };
 
@@ -430,12 +444,16 @@ const getBondWithStatusOption = (status) => {
 };
 
 const getAllBondsWithStatus = async (status) => {
-	logger.info("getAllBondsWithStatus start with input status: ", status);
+	logger.info(
+		"hyperLedger greenBond getAllBondsWithStatus execution started"
+	);
+	logger.info("Input status: ", status);
 	if (!status) {
 		return;
 	}
 	try {
 		let result = await axiosHttpService(getBondWithStatusOption(status));
+		logger.info("Response from spydra: ", result);
 		if (result.code === 200) {
 			let res = result.res;
 			if (res.data.GreenBond_count) {
@@ -444,6 +462,9 @@ const getAllBondsWithStatus = async (status) => {
 					return element;
 				});
 			}
+			logger.info(
+				"hyperLedger greenBond getAllBondsWithStatus execution end"
+			);
 			return res;
 		}
 		return;

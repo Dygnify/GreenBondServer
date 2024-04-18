@@ -8,14 +8,14 @@ const GreenBond = require("../models/greenBond");
 
 // Create bond
 const createBond = async (req, res) => {
-	logger.info("createBond execution started");
+	logger.info("greenBondController createBond execution started");
 	try {
 		// validate the body
 		if (!req.body) {
 			logger.error("Invalid request data");
 			response.status(400).send("Invalid data");
 		}
-		logger.info("Bond Data received: ", req.body);
+
 		const { error } = GreenBond.validate(req.body);
 		if (error) {
 			logger.error("Bond validation failed: ", error);
@@ -28,7 +28,7 @@ const createBond = async (req, res) => {
 			logger.info("Bond successfuly created with id: ", result.Id);
 			return res.status(201).json(result.Id);
 		} else {
-			logger.error("Failed to create bond");
+			logger.error("Failed to create bond. Error: ", result);
 			return res.status(result.code).json(result.res);
 		}
 	} catch (error) {
@@ -39,7 +39,7 @@ const createBond = async (req, res) => {
 
 // Get list of bonds for an user
 const getBonds = async (req, res) => {
-	logger.info("getBonds execution started");
+	logger.info("greenBondController getBonds execution started");
 	try {
 		if (!req.body) {
 			logger.error("Invalid request data");
@@ -59,7 +59,7 @@ const getBonds = async (req, res) => {
 
 // Get list of all bonds
 const getAllBonds = async (req, res) => {
-	logger.info("getAllBonds execution started");
+	logger.info("greenBondController getAllBonds execution started");
 	try {
 		var result = await getAllGreenBonds(
 			req.body?.pageSize,
