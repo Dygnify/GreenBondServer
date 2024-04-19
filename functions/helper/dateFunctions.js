@@ -5,9 +5,14 @@ function calculateDateDifferenceInDays(date1, date2) {
 	try {
 		const firstDate = new Date(date1);
 		const secondDate = new Date(date2);
-		const diffDays = Math.floor(
-			Math.abs((firstDate - secondDate) / oneDay)
-		);
+		var diffDays = Math.floor(Math.abs((firstDate - secondDate) / oneDay));
+
+		// handle the corner case of 1 day prior where diffDays will come 0
+		if (diffDays === 0) {
+			const day1 = firstDate.getDate();
+			const day2 = secondDate.getDate();
+			diffDays = Math.abs(day1 - day2);
+		}
 		return diffDays;
 	} catch (error) {
 		logger.error(error);

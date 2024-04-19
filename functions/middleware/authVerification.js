@@ -28,6 +28,7 @@ const verifyToken = async (req, res, next) => {
 		logger.info("User executing request: ", decodedToken);
 		next();
 	} catch (error) {
+		logger.error(error);
 		return res.status(401).send("Unauthorized");
 	}
 };
