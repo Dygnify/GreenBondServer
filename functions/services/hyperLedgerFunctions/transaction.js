@@ -32,6 +32,7 @@ const createTx = async (transaction) => {
 	if (!transaction) {
 		return;
 	}
+	let originalData = { ...transaction };
 	let data = eDCryptTransactionData(transaction, true);
 	if (!transaction.Id) {
 		const id = uuid.v4();
@@ -84,9 +85,9 @@ const createTx = async (transaction) => {
 							: "User",
 						custodians[i].email,
 						res.data.email,
-						transaction.bondName,
-						transaction.amount,
-						transaction.transactionDate,
+						originalData.bondName,
+						originalData.amount,
+						originalData.transactionDate,
 						admins
 					);
 				}
@@ -106,9 +107,9 @@ const createTx = async (transaction) => {
 					companyName ? companyName : "User",
 					res.data.email,
 					custodians,
-					transaction.bondName,
-					transaction.amount,
-					transaction.transactionDate,
+					originalData.bondName,
+					originalData.amount,
+					originalData.transactionDate,
 					admins
 				);
 			}

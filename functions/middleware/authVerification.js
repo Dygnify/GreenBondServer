@@ -4,7 +4,9 @@ const { logger } = require("firebase-functions/v1");
 const verifyToken = async (req, res, next) => {
 	logger.info("Token validation execution started");
 	logger.info(
-		`Request url: ${req.url}, body: ${req.body}, params: ${req.query}`
+		`Request url: ${req.url}, body: ${JSON.stringify(
+			req.body
+		)}, params: ${JSON.stringify(req.query)}`
 	);
 	try {
 		if (

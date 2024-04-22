@@ -9,9 +9,13 @@ function calculateDateDifferenceInDays(date1, date2) {
 
 		// handle the corner case of 1 day prior where diffDays will come 0
 		if (diffDays === 0) {
-			const day1 = firstDate.getDate();
-			const day2 = secondDate.getDate();
-			diffDays = Math.abs(day1 - day2);
+			if (
+				firstDate.getDate() !== secondDate.getDate() ||
+				firstDate.getMonth() !== secondDate.getMonth() ||
+				firstDate.getFullYear() !== secondDate.getFullYear()
+			) {
+				diffDays = 1;
+			}
 		}
 		return diffDays;
 	} catch (error) {
