@@ -29,10 +29,11 @@ const createTokenizedBond = async (req, res) => {
 			logger.error("Invalid request data");
 			response.status(400).send("Invalid data");
 		}
+		logger.info("TokenizedBond Data received: ", req.body);
 
 		const { error } = TokenizedBond.validate(req.body);
 		if (error) {
-			logger.error(error);
+			logger.error("TokenizedBond validation failed: ", error);
 			return res.status(400).send(error.details);
 		}
 
@@ -40,8 +41,13 @@ const createTokenizedBond = async (req, res) => {
 		var result = await createTokenized(req.body);
 		logger.info("Creat Bond response from Spydra: ", result);
 		if (result.Id) {
+			logger.info(
+				"TokenizedBond successfuly created with id: ",
+				result.Id
+			);
 			return res.status(201).json(result.Id);
 		} else {
+			logger.error("Failed to create TokenizedBond");
 			return res.status(result.code).json(result.res);
 		}
 	} catch (error) {
@@ -61,6 +67,7 @@ const getTokenizedBond = async (req, res) => {
 		var result = await getTokenized(req.body.field, req.body.value);
 		logger.info("Response: ", result);
 		if (result) {
+			logger.info("TokenizedBond found: ", result);
 			return res.status(200).json(result);
 		}
 	} catch (error) {
@@ -78,6 +85,7 @@ const getAllTokenizedBond = async (req, res) => {
 		var result = await getAllBondsWithStatus(5);
 		logger.info("Response: ", result);
 		if (result) {
+			logger.info("TokenizedBonds found: ", result);
 			return res.status(200).json(result);
 		}
 	} catch (error) {
