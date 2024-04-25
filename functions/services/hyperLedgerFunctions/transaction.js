@@ -3,7 +3,14 @@ const { axiosHttpService } = require("../axioscall");
 const uuid = require("uuid");
 const { repayment, distributePay } = require("../emailHelper");
 const { getUser, getAllUser } = require("./userAsset");
-const { encryptData, decryptData } = require("../helper/helperFunctions");
+const {
+	encryptData,
+	decryptData,
+	sortObject,
+} = require("../helper/helperFunctions");
+const { createNft } = require("./nft");
+const { getTokenized } = require("./tokenizedBond");
+const CryptoJS = require("crypto-js");
 
 const createTxOption = (transaction) => {
 	if (!transaction) {
@@ -36,6 +43,7 @@ const createTx = async (transaction) => {
 	let data = eDCryptTransactionData(transaction, true);
 	if (!transaction.Id) {
 		const id = uuid.v4();
+		originalData.Id = id.toString();
 		data = {
 			Id: id.toString(),
 			...data,
@@ -64,6 +72,43 @@ const createTx = async (transaction) => {
 		});
 		if (!transaction.Id) {
 			if (transaction?.borrowerTransactionType === 1) {
+				const date = originalData.investedOn;
+
+				//Sorting is needed, because later we will verify the hash
+				const sortedTxData = sortObject(originalData);
+
+				let stringObj = JSON.stringify(sortedTxData);
+				let hash = CryptoJS.SHA256(stringObj);
+				let hashString = hash.toString(CryptoJS.enc.Hex);
+
+				// Get tokenizedBond
+				const tokenizedBond = await getTokenized(
+					"bondId",
+					originalData.bondId
+				);
+
+				// Get custodian email from tokenizedBond
+				const custodianEmail = tokenizedBond.records[0].data?.custodian;
+
+				// Get nft Id
+				const nftId = tokenizedBond.records[0].data.nftId;
+
+				let nftData = {
+					functionName: "UpdateGreenBondNFTDynamicData",
+					identity: custodianEmail,
+					args: [
+						nftId,
+						"repayments",
+						{
+							time: date,
+							hash: hashString,
+						},
+					],
+				};
+
+				// Save repayment tx hash and time in NFT
+				await createNft(nftData);
+
 				const res = await getUser(transaction.issuerId);
 				let custodians = [];
 				const result = await getAllUser();
@@ -78,6 +123,7 @@ const createTx = async (transaction) => {
 						});
 					}
 				});
+
 				for (let i = 0; i < custodians.length; i++) {
 					await repayment(
 						custodians[i].companyName
