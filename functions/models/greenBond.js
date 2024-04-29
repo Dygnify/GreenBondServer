@@ -31,6 +31,7 @@ const GreenBond = Joi.object({
 	delayChargeRatePercentage: Joi.number(),
 	action: Joi.string(),
 	totalSubscribed: Joi.string(),
+	requestType: Joi.number(),
 });
 
 module.exports = GreenBond;
