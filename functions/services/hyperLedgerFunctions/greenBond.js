@@ -10,7 +10,7 @@ const {
 	matureBond,
 } = require("../emailHelper");
 const { getUser, getAllUser } = require("./userAsset");
-const { getTx } = require("./transaction");
+const { getTx } = require("./getTx");
 const {
 	convertTimestampToDate,
 	encryptData,

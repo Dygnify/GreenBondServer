@@ -11,6 +11,7 @@ const {
 const { createNft } = require("./nft");
 const { getTokenized } = require("./tokenizedBond");
 const CryptoJS = require("crypto-js");
+const { getGreenBond, createGreenBond } = require("./greenBond");
 
 const createTxOption = (transaction) => {
 	if (!transaction) {
@@ -41,6 +42,10 @@ const createTx = async (transaction) => {
 	}
 	let originalData = { ...transaction };
 	let data = eDCryptTransactionData(transaction, true);
+	let action = data.action;
+	if (action) {
+		delete data.action;
+	}
 	if (!transaction.Id) {
 		const id = uuid.v4();
 		originalData.Id = id.toString();
@@ -158,6 +163,29 @@ const createTx = async (transaction) => {
 					originalData.transactionDate,
 					admins
 				);
+			}
+		} else {
+			switch (action) {
+				case "InvestConfirm":
+					let bond = await getGreenBond({
+						field: "Id",
+						value: originalData.bondId,
+					});
+					bond = bond.data;
+					let totalSubscribed = bond.totalSubscribed
+						? bond.totalSubscribed
+						: 0;
+					await createGreenBond({
+						...bond,
+						totalSubscribed: (
+							+totalSubscribed + +originalData.amount
+						).toString(),
+						action: "Invest Bond",
+					});
+					break;
+
+				default:
+					break;
 			}
 		}
 		logger.info("hyperLedger transaction createTx execution end");
