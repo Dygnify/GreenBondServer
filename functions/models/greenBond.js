@@ -32,6 +32,7 @@ const GreenBond = Joi.object({
 	action: Joi.string(),
 	totalSubscribed: Joi.string(),
 	requestType: Joi.number(),
+	custodian: Joi.string(),
 });
 
 module.exports = GreenBond;
