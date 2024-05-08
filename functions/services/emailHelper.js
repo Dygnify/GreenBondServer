@@ -642,6 +642,45 @@ const resetPasswordMail = async (name, link, email, password) => {
 	);
 };
 
+const SubscriptionFundsSuccess = async (name, email, bcc, bondName, amount) => {
+	const mainBody = `<!-- START MAIN CONTENT AREA -->
+    <tr>
+      <td class="wrapper">
+      <p>Dear ${name},</p>
+      <p>The subscription amount of ${amount} towards instrument ${bondName} has been received and acknowledged by Custodian.</p>
+      <p>Thanks,<br/>Team Project iGreen</p>  
+      </td>
+    </tr>`;
+
+	await sendEmail(
+		email,
+		"Project iGreen - Green Bond subscribed",
+		mainBody,
+		"",
+		bcc
+	);
+};
+
+const SubscriptionFundsFailed = async (name, email, bcc, bondName, amount) => {
+	const mainBody = `<!-- START MAIN CONTENT AREA -->
+    <tr>
+      <td class="wrapper">
+      <p>Dear ${name},</p>
+      <p>The subscription amount of ${amount} towards instrument ${bondName} has been not been received by Custodian.</p>
+      <p>Kindly check and re-initiate the subscription process.</p>
+      <p>Thanks,<br/>Team Project iGreen</p>  
+      </td>
+    </tr>`;
+
+	await sendEmail(
+		email,
+		"Project iGreen - Green Bond subscribed",
+		mainBody,
+		"",
+		bcc
+	);
+};
+
 const sendEmail = async (to, subject, mainBody, cc = "", bcc = "") => {
 	logger.info("emailHelper sendEmail execution started");
 	try {
@@ -677,4 +716,6 @@ module.exports = {
 	resetPasswordMail,
 	updateProfile,
 	sendEmail,
+	SubscriptionFundsSuccess,
+	SubscriptionFundsFailed,
 };

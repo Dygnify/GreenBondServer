@@ -1,7 +1,12 @@
 const { logger } = require("firebase-functions/v1");
 const { axiosHttpService } = require("../axioscall");
 const uuid = require("uuid");
-const { repayment, distributePay } = require("../emailHelper");
+const {
+	repayment,
+	distributePay,
+	SubscriptionFundsSuccess,
+	SubscriptionFundsFailed,
+} = require("../emailHelper");
 const { getUser, getAllUser } = require("./userAsset");
 const {
 	encryptData,
@@ -165,6 +170,9 @@ const createTx = async (transaction) => {
 				);
 			}
 		} else {
+			const { email, companyName } = await getEmailAndNameByUserId(
+				originalData.subscriberId
+			);
 			switch (action) {
 				case "InvestConfirm":
 					let bond = await getGreenBond({
@@ -182,7 +190,24 @@ const createTx = async (transaction) => {
 						).toString(),
 						action: "Invest Bond",
 					});
+
+					await SubscriptionFundsSuccess(
+						companyName ? companyName : "User",
+						email,
+						[bond.custodian],
+						originalData.bondName,
+						originalData.amount
+					);
 					break;
+
+				case "InvestReject":
+					await SubscriptionFundsFailed(
+						companyName ? companyName : "User",
+						email,
+						[bond.custodian],
+						originalData.bondName,
+						originalData.amount
+					);
 
 				default:
 					break;
@@ -332,6 +357,14 @@ const eDCryptTransactionData = (transaction, encrypt = false) => {
 		logger.error(error);
 		return;
 	}
+};
+
+const getEmailAndNameByUserId = async (Id) => {
+	const res = await getUser(Id);
+	const profile = JSON.parse(res.data.profile);
+	const companyName = profile.companyName;
+	const email = res.email;
+	return { email: res.data.email, companyName: companyName };
 };
 
 module.exports = { createTx, getTx, getAllTx };
