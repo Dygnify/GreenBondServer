@@ -642,7 +642,14 @@ const resetPasswordMail = async (name, link, email, password) => {
 	);
 };
 
-const SubscriptionFundsSuccess = async (name, email, bcc, bondName, amount) => {
+const SubscriptionFundsSuccess = async (
+	name,
+	email,
+	cc,
+	bcc,
+	bondName,
+	amount
+) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
@@ -656,12 +663,19 @@ const SubscriptionFundsSuccess = async (name, email, bcc, bondName, amount) => {
 		email,
 		"Project iGreen - Green Bond subscribed",
 		mainBody,
-		"",
+		cc,
 		bcc
 	);
 };
 
-const SubscriptionFundsFailed = async (name, email, bcc, bondName, amount) => {
+const SubscriptionFundsFailed = async (
+	name,
+	email,
+	cc,
+	bcc,
+	bondName,
+	amount
+) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
       <td class="wrapper">
@@ -676,7 +690,60 @@ const SubscriptionFundsFailed = async (name, email, bcc, bondName, amount) => {
 		email,
 		"Project iGreen - Green Bond subscribed",
 		mainBody,
-		"",
+		cc,
+		bcc
+	);
+};
+
+const DisbursementFundsSuccess = async (
+	name,
+	email,
+	cc,
+	bcc,
+	bondName,
+	amount
+) => {
+	const mainBody = `<!-- START MAIN CONTENT AREA -->
+    <tr>
+      <td class="wrapper">
+      <p>Dear ${name},</p>
+      <p>The disbursement amount of ${amount} towards instrument ${bondName} has been received and acknowledged by Issuer.</p>
+      <p>Thanks,<br/>Team Project iGreen</p>  
+      </td>
+    </tr>`;
+
+	await sendEmail(
+		email,
+		"Project iGreen - Green Bond subscribed",
+		mainBody,
+		cc,
+		bcc
+	);
+};
+
+const DisbursementFundsFailed = async (
+	name,
+	email,
+	cc,
+	bcc,
+	bondName,
+	amount
+) => {
+	const mainBody = `<!-- START MAIN CONTENT AREA -->
+    <tr>
+      <td class="wrapper">
+      <p>Dear ${name},</p>
+      <p>The disbursement amount of ${amount} towards instrument ${bondName} has been not been received by Issuer.</p>
+      <p>Kindly check and re-initiate the subscription process.</p>
+      <p>Thanks,<br/>Team Project iGreen</p>  
+      </td>
+    </tr>`;
+
+	await sendEmail(
+		email,
+		"Project iGreen - Green Bond subscribed",
+		mainBody,
+		cc,
 		bcc
 	);
 };
@@ -718,4 +785,6 @@ module.exports = {
 	sendEmail,
 	SubscriptionFundsSuccess,
 	SubscriptionFundsFailed,
+	DisbursementFundsSuccess,
+	DisbursementFundsFailed,
 };
