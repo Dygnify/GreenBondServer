@@ -642,6 +642,120 @@ const resetPasswordMail = async (name, link, email, password) => {
 	);
 };
 
+const SubscriptionFundsSuccess = async (
+	name,
+	email,
+	cc,
+	bcc,
+	bondName,
+	amount
+) => {
+	const mainBody = `<!-- START MAIN CONTENT AREA -->
+    <tr>
+      <td class="wrapper">
+      <p>Dear ${name},</p>
+      <p>The subscription amount of ${formatCurrency(
+			amount
+		)} towards instrument ${bondName} has been received and acknowledged by Custodian.</p>
+      <p>Thanks,<br/>Team Project iGreen</p>  
+      </td>
+    </tr>`;
+
+	await sendEmail(
+		email,
+		"Project iGreen - Green Bond subscribed",
+		mainBody,
+		cc,
+		bcc
+	);
+};
+
+const SubscriptionFundsFailed = async (
+	name,
+	email,
+	cc,
+	bcc,
+	bondName,
+	amount
+) => {
+	const mainBody = `<!-- START MAIN CONTENT AREA -->
+    <tr>
+      <td class="wrapper">
+      <p>Dear ${name},</p>
+      <p>The subscription amount of ${formatCurrency(
+			amount
+		)} towards instrument ${bondName} has been not been received by Custodian.</p>
+      <p>Kindly check and re-initiate the subscription process.</p>
+      <p>Thanks,<br/>Team Project iGreen</p>  
+      </td>
+    </tr>`;
+
+	await sendEmail(
+		email,
+		"Project iGreen - Green Bond subscribed",
+		mainBody,
+		cc,
+		bcc
+	);
+};
+
+const DisbursementFundsSuccess = async (
+	name,
+	email,
+	cc,
+	bcc,
+	bondName,
+	amount
+) => {
+	const mainBody = `<!-- START MAIN CONTENT AREA -->
+    <tr>
+      <td class="wrapper">
+      <p>Dear ${name},</p>
+      <p>The disbursement amount of ${formatCurrency(
+			amount
+		)} towards instrument ${bondName} has been received and acknowledged by Issuer.</p>
+      <p>Thanks,<br/>Team Project iGreen</p>  
+      </td>
+    </tr>`;
+
+	await sendEmail(
+		email,
+		"Project iGreen - Green Bond subscribed",
+		mainBody,
+		cc,
+		bcc
+	);
+};
+
+const DisbursementFundsFailed = async (
+	name,
+	email,
+	cc,
+	bcc,
+	bondName,
+	amount
+) => {
+	const mainBody = `<!-- START MAIN CONTENT AREA -->
+    <tr>
+      <td class="wrapper">
+      <p>Dear ${name},</p>
+      <p>The disbursement amount of ${formatCurrency(
+			amount
+		)} towards instrument ${bondName} has been not been received by Issuer.</p>
+      <p>Kindly check and re-initiate the subscription process.</p>
+      <p>Thanks,<br/>Team Project iGreen</p>  
+      </td>
+    </tr>`;
+
+	await sendEmail(
+		email,
+		"Project iGreen - Green Bond subscribed",
+		mainBody,
+		cc,
+		bcc
+	);
+};
+
 const sendEmail = async (to, subject, mainBody, cc = "", bcc = "") => {
 	logger.info("emailHelper sendEmail execution started");
 	try {
@@ -677,4 +791,8 @@ module.exports = {
 	resetPasswordMail,
 	updateProfile,
 	sendEmail,
+	SubscriptionFundsSuccess,
+	SubscriptionFundsFailed,
+	DisbursementFundsSuccess,
+	DisbursementFundsFailed,
 };

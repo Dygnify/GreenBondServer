@@ -175,7 +175,7 @@ const webhook = async (req, res) => {
 						if (nft.success) {
 							nft = nft.res;
 							const monitoringOptions = {
-								url: `${process.env.REACT_APP_GREENDATA_API_URI}/getGreenMonitoringData`,
+								url: `${process.env.GREENDATA_API_URI}/getGreenMonitoringData`,
 								method: "POST",
 								maxBodyLength: Infinity,
 								headers: {
@@ -232,7 +232,7 @@ const webhook = async (req, res) => {
 								};
 								await createNftFunction(nftData);
 								const greenDataOptions = {
-									url: `${process.env.REACT_APP_GREENDATA_API_URI}/getGreenData`,
+									url: `${process.env.GREENDATA_API_URI}/getGreenData`,
 									method: "POST",
 									maxBodyLength: Infinity,
 									headers: {

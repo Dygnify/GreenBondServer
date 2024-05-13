@@ -268,6 +268,54 @@ const getUserWithEmail = async (email) => {
 	}
 };
 
+const getUsersWithRoleOption = (role) => {
+	if (role === undefined) {
+		return;
+	}
+	logger.log(role);
+	let data = JSON.stringify({
+		query: `{
+          User(role: ${role}){
+              Id,
+              email,
+              profile,
+              role,
+			  kycStatus, 
+			  isNewUser
+      }}`,
+	});
+
+	return {
+		method: "post",
+		maxBodyLength: Infinity,
+		url: `${process.env.SPYDRA_API_URL}/tokenize/${process.env.SPYDRA_APP_ID}/graphql`,
+		headers: {
+			"X-API-KEY": process.env.SPYDRA_API_KEY,
+			"Content-Type": "application/json",
+		},
+		data: data,
+	};
+};
+
+const getUsersWithRole = async (role) => {
+	logger.info("hyperLedger userAsset getUsersWithRole execution started");
+	logger.log(`role: ${role}`);
+	if (role === undefined) {
+		return;
+	}
+	try {
+		let result = await axiosHttpService(getUsersWithRoleOption(role));
+		logger.info("Response from spydra: ", result);
+		if (result.code === 200) {
+			logger.info("hyperLedger userAsset getUserWithEmail execution end");
+			return getDecryptedUser(result.res.data.User);
+		}
+		return;
+	} catch (error) {
+		logger.error(error);
+	}
+};
+
 const getUserOption = (Id) => {
 	if (!Id) {
 		return;
@@ -475,6 +523,7 @@ module.exports = {
 	createNewUser,
 	getUserWithEmailAndRole,
 	getUserWithEmail,
+	getUsersWithRole,
 	getUser,
 	getAllUser,
 	deleteUser,

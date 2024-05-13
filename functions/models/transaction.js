@@ -22,6 +22,7 @@ const Transaction = Joi.object({
 	utrNo: Joi.string().required(),
 	transactionDate: Joi.string(),
 	status: Joi.number().required(),
+	action: Joi.string(),
 });
 
 module.exports = Transaction;
