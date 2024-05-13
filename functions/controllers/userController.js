@@ -7,6 +7,7 @@ const {
 	getAllUser,
 	deleteUser,
 	forgotPassword,
+	getUsersWithRole,
 } = require("../services/hyperLedgerFunctions/userAsset");
 const User = require("../models/user");
 const { getFirebaseAdminAuth } = require("../firebaseInit");
@@ -59,7 +60,7 @@ const getUsers = async (req, res) => {
 		if (req.body.Id) {
 			logger.info("Get user with id called, for id: ", req.body.Id);
 			result = await getUser(req.body.Id);
-		} else if (req.body.role !== undefined) {
+		} else if (req.body.role !== undefined && req.body.email) {
 			logger.info(
 				`Get user with email called, with param email: ${req.body.email} and role: ${req.body.role}`
 			);
@@ -68,10 +69,17 @@ const getUsers = async (req, res) => {
 				req.body.role
 			);
 		} else {
-			logger.info(
-				`Get user with email called, with param email: ${req.body.email}`
-			);
-			result = await getUserWithEmail(req.body.email);
+			if (req.body.email) {
+				logger.info(
+					`Get user with email called, with param email: ${req.body.email}`
+				);
+				result = await getUserWithEmail(req.body.email);
+			} else if (req.body.role !== undefined) {
+				logger.info(
+					`Get users with role called, with param role: ${req.body.role}`
+				);
+				result = await getUsersWithRole(req.body.role);
+			}
 		}
 
 		if (result) {
