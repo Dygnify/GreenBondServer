@@ -519,6 +519,21 @@ function generateSecurePassword(length) {
 	}
 }
 
+const getEmailAndNameByUserId = async (Id) => {
+	const res = await getUser(Id);
+	const profile = JSON.parse(res.data.profile);
+	const companyName = profile.companyName;
+	const email = res.data.email;
+	return { email: email, companyName: companyName };
+};
+
+const getUserProfile = async (email) => {
+	const user = getUserWithEmail(email);
+	const userProfile = JSON.parse(user.profile);
+	const userCompanyName = userProfile.companyName;
+	return userCompanyName;
+};
+
 module.exports = {
 	createNewUser,
 	getUserWithEmailAndRole,
@@ -528,4 +543,6 @@ module.exports = {
 	getAllUser,
 	deleteUser,
 	forgotPassword,
+	getEmailAndNameByUserId,
+	getUserProfile,
 };

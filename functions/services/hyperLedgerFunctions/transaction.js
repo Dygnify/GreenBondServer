@@ -9,12 +9,18 @@ const {
 	DisbursementFundsSuccess,
 	DisbursementFundsFailed,
 } = require("../emailHelper");
-const { getUser, getAllUser, getUserWithEmail } = require("./userAsset");
+const {
+	getUser,
+	getAllUser,
+	getUserProfile,
+	getEmailAndNameByUserId,
+} = require("./userAsset");
 const {
 	encryptData,
 	decryptData,
 	sortObject,
 	convertTimestampToDate,
+	generateHash,
 } = require("../helper/helperFunctions");
 const { createNft } = require("./nft");
 const { getTokenized, createTokenized } = require("./tokenizedBond");
@@ -24,6 +30,9 @@ const {
 	getTermLoanAmortisation,
 	getBulletLoanAmortisation,
 } = require("../amortisation/amortisationSchedule");
+const { getGreenScore } = require("../greenScore");
+const { getGreenData } = require("../greenData");
+const { getMonitoringData } = require("../monitoringData");
 
 const InvestorTransactionType = {
 	Invest: 0,
@@ -205,266 +214,111 @@ const createTx = async (transaction) => {
 			let bond;
 			switch (action) {
 				case "InvestConfirm":
-					bond = await getGreenBond({
-						field: "Id",
-						value: originalData.bondId,
-					});
-					bond = bond.data;
-					let totalSubscribed = bond.totalSubscribed
-						? bond.totalSubscribed
-						: 0;
-					await createGreenBond({
-						...bond,
-						totalSubscribed: (
-							+totalSubscribed + +originalData.amount
-						).toString(),
-						action: "Invest Bond",
-					});
+					try {
+						bond = await getGreenBond({
+							field: "Id",
+							value: originalData.bondId,
+						});
+						bond = bond.data;
+						let totalSubscribed = bond.totalSubscribed
+							? bond.totalSubscribed
+							: 0;
+						const result = await createGreenBond({
+							...bond,
+							totalSubscribed: (
+								+totalSubscribed + +originalData.amount
+							).toString(),
+							action: "Invest Bond",
+						});
 
-					await SubscriptionFundsSuccess(
-						companyName ? companyName : "User",
-						email,
-						[bond.custodian],
-						admins,
-						originalData.bondName,
-						originalData.amount
-					);
-					break;
+						if (result.Id) {
+							await SubscriptionFundsSuccess(
+								companyName ? companyName : "User",
+								email,
+								[bond.custodian],
+								admins,
+								originalData.bondName,
+								originalData.amount
+							);
+						}
+
+						break;
+					} catch (error) {
+						logger.error(error);
+					}
 
 				case "InvestReject":
-					await SubscriptionFundsFailed(
-						companyName ? companyName : "User",
-						email,
-						[bond.custodian],
-						admins,
-						originalData.bondName,
-						originalData.amount
-					);
-					break;
+					try {
+						bond = await getGreenBond({
+							field: "Id",
+							value: originalData.bondId,
+						});
+						bond = bond.data;
+
+						await SubscriptionFundsFailed(
+							companyName ? companyName : "User",
+							email,
+							[bond.custodian],
+							admins,
+							originalData.bondName,
+							originalData.amount
+						);
+						break;
+					} catch (error) {
+						logger.error(error);
+					}
 
 				case "BorrowConfirm":
-					bond = await getGreenBond({
-						field: "Id",
-						value: originalData.bondId,
-					});
-					bond = bond.data;
+					try {
+						const result = await borrowTransactionConfirm(
+							originalData
+						);
 
-					let tokenizedBond = {};
-					tokenizedBond.bondId = bond.Id;
-					tokenizedBond.bondType = bond.loan_type;
-					tokenizedBond.bondAmount = +bond.loan_amount;
-					tokenizedBond.bondTenureInMonths = bond.loan_tenure;
-					tokenizedBond.bondInterest = +bond.loan_interest;
-					tokenizedBond.paymentFrequencyInDays =
-						bond.payment_frequency;
-					tokenizedBond.repaymentStartTime = Date.now();
-					tokenizedBond.repaymentCounter = 1;
-					tokenizedBond.custodian = bond.custodian;
+						const custodianCompanyName = await getUserProfile(
+							bond.custodian
+						);
 
-					tokenizedBond.totalRepaidAmount = 0;
-					tokenizedBond.totalOutstandingPrincipal = +bond.loan_amount;
-					tokenizedBond.totalRepayments =
-						(bond.loan_tenure * 30) / bond.payment_frequency;
-
-					// Get GreenScore
-					const scoreResult = await getGreenScore(
-						bond.custodian,
-						bond.loan_name
-					);
-					if (scoreResult?.res?.date === undefined) {
-						throw new Error("Unable to get GreenScore Data");
-					}
-					let date = scoreResult.res.date;
-					let stringObj = JSON.stringify(scoreResult.res);
-					let hash = CryptoJS.SHA256(stringObj);
-					let hashString = hash.toString(CryptoJS.enc.Hex);
-
-					// Get GreenMonitoring Data
-					const monitoringDataResult = await getMonitoringData(
-						bond.loan_name
-					);
-
-					let monitoringDate = monitoringDataResult.res.date;
-					let monitoringStringObj = JSON.stringify(
-						monitoringDataResult.res
-					);
-					let monitoringHash = CryptoJS.SHA256(monitoringStringObj);
-					let monitoringHashString = monitoringHash.toString(
-						CryptoJS.enc.Hex
-					);
-
-					let monitoringData = [];
-					if (monitoringDataResult?.res?.date !== undefined) {
-						monitoringData.push({
-							time: monitoringDate,
-							hash: monitoringHashString,
-						});
-					}
-
-					// Get Green Data
-					const greenDataResult = await getGreenData(bond.loan_name);
-
-					let greenDataDate = monitoringDate;
-					let greenDataStringObj = JSON.stringify(
-						greenDataResult.res
-					);
-					let greenDataHash = CryptoJS.SHA256(greenDataStringObj);
-					let greenDataHashString = greenDataHash.toString(
-						CryptoJS.enc.Hex
-					);
-
-					let greenData = [];
-					if (greenDataResult?.res?.greenSiteData !== undefined) {
-						greenData.push({
-							time: greenDataDate,
-							hash: greenDataHashString,
-						});
-					}
-					const companyDetails = JSON.parse(bond.companyDetails);
-					let trx = [];
-
-					let transactions = await getTx("bondId", bond.Id);
-					transactions = transactions.records
-						? transactions.records
-						: [];
-					transactions = transactions.map((tx) => tx.data);
-					for (let index = 0; index < transactions.length; index++) {
-						const element = transactions[index];
-						if (
-							element.subscriberId &&
-							element.status === TransactionStatus.Completed &&
-							element.investorTransactionType ===
-								InvestorTransactionType.Invest
-						) {
-							// get the subscriber
-							const result = await getUser(element.subscriberId);
-							const subData = result.data;
-							trx.push({
-								email: subData?.email,
-								amount: element.amount,
-							});
+						if (result?.Id) {
+							await DisbursementFundsSuccess(
+								custodianCompanyName
+									? custodianCompanyName
+									: "User",
+								bond.custodian,
+								email,
+								admins,
+								originalData.bondName,
+								originalData.amount
+							);
 						}
+						break;
+					} catch (error) {
+						logger.error(error);
 					}
-					let nftData = {
-						functionName: "CreateGreenBondNFT",
-						identity: bond.custodian,
-						args: [
-							uuid.v4(),
-							{
-								name: bond.loan_name,
-								amount: bond.loan_amount,
-								couponRate: bond.loan_interest,
-								issueDate: convertTimestampToDate(
-									tokenizedBond.repaymentStartTime
-								),
-								tenure: bond.loan_tenure,
-								bondType: bond.loan_type,
-								paymentFrequency: bond.payment_frequency,
-								collateralDocHash: bond.collateralHash,
-								capitalLossPercentage: bond.capital_loss,
-							},
-							companyDetails?.companyName,
-							bond.custodian,
-							trx.map((element) => {
-								return {
-									subscriber: element.email,
-									amount: element.amount,
-								};
-							}),
-							[
-								{
-									time: date,
-									hash: hashString,
-								},
-							],
-							[...monitoringData],
-							[...greenData],
-						],
-					};
-
-					const amortisationData = {
-						loanAmount: +bond.loan_amount,
-						interestRatePercentage: +bond.loan_interest,
-						tenureInMonths: +bond.loan_tenure / 30,
-						paymentFrequencyInDays: +bond.payment_frequency,
-						disbursmentDate: convertTimestampToDate(
-							tokenizedBond.repaymentStartTime
-						),
-						investorUpfrontFees:
-							+bond.investorUpfrontFeesPercentage,
-						platformFeesPercentage: bond.percentageOfCoupon
-							? +bond.percentageOfCoupon
-							: 10,
-						JuniorContributionPercentage:
-							+bond.juniorTranchPercentage,
-						JuniorPrincipalFloatPercentage:
-							+bond.juniorTranchFloatInterestPercentage,
-					};
-
-					if (bond.loan_type === "1") {
-						let res = getTermLoanAmortisation(amortisationData);
-						tokenizedBond.emiAmount =
-							res.amortisationSchedule[
-								tokenizedBond.repaymentCounter - 1
-							].totalPayment;
-						tokenizedBond.emiAmount =
-							tokenizedBond.emiAmount.toString();
-					} else {
-						let res = getBulletLoanAmortisation(amortisationData);
-						tokenizedBond.emiAmount =
-							res.amortisationSchedule[
-								tokenizedBond.repaymentCounter - 1
-							].totalPayment;
-						tokenizedBond.emiAmount =
-							tokenizedBond.emiAmount.toString();
-					}
-
-					const nftRes = await createNft(nftData);
-					if (nftRes.success) {
-						const res = await createTokenized({
-							...tokenizedBond,
-							nftId: nftRes.res.data.substring(
-								1,
-								nftRes.res.data.length - 1
-							),
-						});
-
-						if (res.Id) {
-							await createGreenBond({
-								...bond,
-								status: 5,
-								action: "Tokenize Bond",
-							});
-						}
-					}
-
-					var custodianCompanyName = await getUserProfile(
-						bond.custodian
-					);
-
-					await DisbursementFundsSuccess(
-						custodianCompanyName ? custodianCompanyName : "User",
-						bond.custodian,
-						email,
-						admins,
-						originalData.bondName,
-						originalData.amount
-					);
-
-					break;
 
 				case "BorrowReject":
-					var custodianCompanyName = await getUserProfile(
-						bond.custodian
-					);
-					await DisbursementFundsFailed(
-						custodianCompanyName ? custodianCompanyName : "User",
-						bond.custodian,
-						email,
-						admins,
-						originalData.bondName,
-						originalData.amount
-					);
+					try {
+						bond = await getGreenBond({
+							field: "Id",
+							value: originalData.bondId,
+						});
+						bond = bond.data;
+
+						var custodianCompanyName = await getUserProfile(
+							bond.custodian
+						);
+						await DisbursementFundsFailed(
+							custodianCompanyName
+								? custodianCompanyName
+								: "User",
+							bond.custodian,
+							email,
+							admins,
+							originalData.bondName,
+							originalData.amount
+						);
+					} catch (error) {
+						logger.error(error);
+					}
 
 				default:
 					break;
@@ -616,67 +470,180 @@ const eDCryptTransactionData = (transaction, encrypt = false) => {
 	}
 };
 
-const getEmailAndNameByUserId = async (Id) => {
-	const res = await getUser(Id);
-	const profile = JSON.parse(res.data.profile);
-	const companyName = profile.companyName;
-	const email = res.data.email;
-	return { email: email, companyName: companyName };
+const getInvestmentDetails = async (transactions) => {
+	let trx = [];
+	for (let index = 0; index < transactions.length; index++) {
+		const element = transactions[index];
+		if (
+			element.subscriberId &&
+			element.status === TransactionStatus.Completed &&
+			element.investorTransactionType === InvestorTransactionType.Invest
+		) {
+			// get the subscriber
+			const result = await getUser(element.subscriberId);
+			const subData = result.data;
+			trx.push({
+				email: subData?.email,
+				amount: element.amount,
+			});
+		}
+	}
+	return trx;
 };
 
-const getGreenScore = async (email, projectId) => {
-	const scoreOptions = {
-		url: `${process.env.GREENSCORE_API_URI}/getScoreData`,
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			"X-API-KEY": process.env.GREENSCORE_API_KEY,
-		},
-		data: {
-			email: email,
-			projectId: projectId,
-		},
+const borrowTransactionConfirm = async (originalData) => {
+	let bond = await getGreenBond({
+		field: "Id",
+		value: originalData.bondId,
+	});
+	bond = bond.data;
+
+	let tokenizedBond = {};
+	tokenizedBond.bondId = bond.Id;
+	tokenizedBond.bondType = bond.loan_type;
+	tokenizedBond.bondAmount = +bond.loan_amount;
+	tokenizedBond.bondTenureInMonths = bond.loan_tenure;
+	tokenizedBond.bondInterest = +bond.loan_interest;
+	tokenizedBond.paymentFrequencyInDays = bond.payment_frequency;
+	tokenizedBond.repaymentStartTime = Date.now();
+	tokenizedBond.repaymentCounter = 1;
+	tokenizedBond.custodian = bond.custodian;
+
+	tokenizedBond.totalRepaidAmount = 0;
+	tokenizedBond.totalOutstandingPrincipal = +bond.loan_amount;
+	tokenizedBond.totalRepayments =
+		(bond.loan_tenure * 30) / bond.payment_frequency;
+
+	// Get GreenScore
+	const scoreResult = await getGreenScore(bond.custodian, bond.loan_name);
+	if (scoreResult?.res?.date === undefined) {
+		throw new Error("Unable to get GreenScore Data");
+	}
+	let date = scoreResult.res.date;
+	let hashString = generateHash(scoreResult.res);
+
+	// Get GreenMonitoring Data
+	const monitoringDataResult = await getMonitoringData(bond.loan_name);
+
+	let monitoringDate = monitoringDataResult.res.date;
+	let monitoringHashString = generateHash(monitoringDataResult.res);
+
+	let monitoringData = [];
+	if (monitoringDataResult?.res?.date !== undefined) {
+		monitoringData.push({
+			time: monitoringDate,
+			hash: monitoringHashString,
+		});
+	}
+
+	// Get Green Data
+	const greenDataResult = await getGreenData(bond.loan_name);
+
+	let greenDataDate = monitoringDate;
+	let greenDataHashString = generateHash(greenDataResult.res);
+
+	let greenData = [];
+	if (greenDataResult?.res?.greenSiteData !== undefined) {
+		greenData.push({
+			time: greenDataDate,
+			hash: greenDataHashString,
+		});
+	}
+	const companyDetails = JSON.parse(bond.companyDetails);
+
+	let transactions = await getTx("bondId", bond.Id);
+	transactions = transactions.records ? transactions.records : [];
+	transactions = transactions.map((tx) => tx.data);
+
+	let trx = await getInvestmentDetails(transactions);
+
+	let nftData = {
+		functionName: "CreateGreenBondNFT",
+		identity: bond.custodian,
+		args: [
+			uuid.v4(),
+			{
+				name: bond.loan_name,
+				amount: bond.loan_amount,
+				couponRate: bond.loan_interest,
+				issueDate: convertTimestampToDate(
+					tokenizedBond.repaymentStartTime
+				),
+				tenure: bond.loan_tenure,
+				bondType: bond.loan_type,
+				paymentFrequency: bond.payment_frequency,
+				collateralDocHash: bond.collateralHash,
+				capitalLossPercentage: bond.capital_loss,
+			},
+			companyDetails?.companyName,
+			bond.custodian,
+			trx.map((element) => {
+				return {
+					subscriber: element.email,
+					amount: element.amount,
+				};
+			}),
+			[
+				{
+					time: date,
+					hash: hashString,
+				},
+			],
+			[...monitoringData],
+			[...greenData],
+		],
 	};
-	const scoreResult = await axiosHttpService(scoreOptions);
-	return scoreResult;
-};
 
-const getMonitoringData = async (projectId) => {
-	const monitoringDataOptions = {
-		url: `${process.env.GREENDATA_API_URI}/getGreenMonitoringData`,
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			"X-API-KEY": process.env.GREENDATA_API_KEY,
-		},
-		data: {
-			projectId: projectId,
-		},
+	const amortisationData = {
+		loanAmount: +bond.loan_amount,
+		interestRatePercentage: +bond.loan_interest,
+		tenureInMonths: +bond.loan_tenure / 30,
+		paymentFrequencyInDays: +bond.payment_frequency,
+		disbursmentDate: convertTimestampToDate(
+			tokenizedBond.repaymentStartTime
+		),
+		investorUpfrontFees: +bond.investorUpfrontFeesPercentage,
+		platformFeesPercentage: bond.percentageOfCoupon
+			? +bond.percentageOfCoupon
+			: 10,
+		JuniorContributionPercentage: +bond.juniorTranchPercentage,
+		JuniorPrincipalFloatPercentage:
+			+bond.juniorTranchFloatInterestPercentage,
 	};
-	const monitoringDataResult = await axiosHttpService(monitoringDataOptions);
-	return monitoringDataResult;
+
+	if (bond.loan_type === "1") {
+		let res = getTermLoanAmortisation(amortisationData);
+		tokenizedBond.emiAmount =
+			res.amortisationSchedule[
+				tokenizedBond.repaymentCounter - 1
+			].totalPayment;
+		tokenizedBond.emiAmount = tokenizedBond.emiAmount.toString();
+	} else {
+		let res = getBulletLoanAmortisation(amortisationData);
+		tokenizedBond.emiAmount =
+			res.amortisationSchedule[
+				tokenizedBond.repaymentCounter - 1
+			].totalPayment;
+		tokenizedBond.emiAmount = tokenizedBond.emiAmount.toString();
+	}
+
+	const nftRes = await createNft(nftData);
+	let bondResult;
+	if (nftRes.success) {
+		const res = await createTokenized({
+			...tokenizedBond,
+			nftId: nftRes.res.data.substring(1, nftRes.res.data.length - 1),
+		});
+
+		if (res.Id) {
+			bondResult = await createGreenBond({
+				...bond,
+				status: 5,
+				action: "Tokenize Bond",
+			});
+		}
+	}
+	return bondResult;
 };
 
-const getGreenData = async (projectId) => {
-	const greenDataOptions = {
-		url: `${process.env.GREENDATA_API_URI}/getGreenData`,
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			"X-API-KEY": process.env.GREENDATA_API_KEY,
-		},
-		data: {
-			projectId: projectId,
-		},
-	};
-	const greenDataResult = await axiosHttpService(greenDataOptions);
-	return greenDataResult;
-};
-
-const getUserProfile = async (email) => {
-	const custodian = getUserWithEmail(email);
-	const custodianProfile = JSON.parse(custodian.profile);
-	const custodianCompanyName = custodianProfile.companyName;
-	return custodianCompanyName;
-};
 module.exports = { createTx, getTx, getAllTx };

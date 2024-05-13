@@ -85,6 +85,13 @@ const sortObject = (object) => {
 		}, {});
 };
 
+const generateHash = (data) => {
+	const stringObj = JSON.stringify(data);
+	const hash = CryptoJS.SHA256(stringObj);
+	const hashString = hash.toString(CryptoJS.enc.Hex);
+	return hashString;
+};
+
 module.exports = {
 	getGUID,
 	convertTimestampToDate,
@@ -92,4 +99,5 @@ module.exports = {
 	encryptData,
 	decryptData,
 	sortObject,
+	generateHash,
 };
