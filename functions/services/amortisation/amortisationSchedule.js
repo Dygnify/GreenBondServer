@@ -7,6 +7,7 @@ const {
 } = require("../../helper/dateFunctions");
 
 const getTermLoanAmortisation = (details) => {
+	logger.info("getTermLoanAmortisation execution start");
 	const {
 		amortisationSchedule,
 		cashFlow,
@@ -57,9 +58,7 @@ const getTermLoanAmortisation = (details) => {
 	console.table(juniorAmortisationSchedule);
 	console.table(juniorInvestorCashFlow);
 	logger.info("Junior XIRR : ", juniorXirr);
-	logger.info(
-		"accountingController getTermLoanAmortisationSchedule execution end"
-	);
+	logger.info("getTermLoanAmortisation execution end");
 	return {
 		amortisationSchedule,
 		cashFlow,
@@ -81,9 +80,7 @@ const generateTermLoanCashflows = (
 	juniorTranchFeePercentage,
 	JuniorPrincipalFloatInterestPercentage
 ) => {
-	logger.info(
-		"accountingController generateTermLoanCashflows execution start"
-	);
+	logger.info("generateTermLoanCashflows execution start");
 	try {
 		// validate the inputs
 		if (
@@ -255,9 +252,7 @@ const generateTermLoanCashflows = (
 			nextEmiDate = addMonthsToDate(disbursementDate, nextRepaymentMonth);
 		}
 
-		logger.info(
-			"accountingController generateTermLoanCashflows execution end"
-		);
+		logger.info("generateTermLoanCashflows execution end");
 		return {
 			amortisationSchedule,
 			cashFlow,
@@ -273,6 +268,7 @@ const generateTermLoanCashflows = (
 };
 
 const getBulletLoanAmortisation = (details) => {
+	logger.info("getBulletLoanAmortisation execution start");
 	const {
 		amortisationSchedule,
 		cashFlow,
@@ -323,9 +319,7 @@ const getBulletLoanAmortisation = (details) => {
 	console.table(juniorAmortisationSchedule);
 	console.table(juniorInvestorCashFlow);
 	logger.info("Junior XIRR : ", juniorXirr);
-	logger.info(
-		"accountingController getBulletLoanAmortisationSchedule execution end"
-	);
+	logger.info("getBulletLoanAmortisation execution end");
 	return {
 		amortisationSchedule,
 		cashFlow,
@@ -347,9 +341,7 @@ const generateBulletLoanCashflows = (
 	juniorTranchFeePercentage,
 	JuniorPrincipalFloatInterestPercentage
 ) => {
-	logger.info(
-		"accountingController generateBulletLoanCashflows execution start"
-	);
+	logger.info("generateBulletLoanCashflows execution start");
 	try {
 		// validate the inputs
 		if (
@@ -506,9 +498,7 @@ const generateBulletLoanCashflows = (
 			lastEmiDate = nextEmiDate;
 			nextEmiDate = addMonthsToDate(disbursementDate, nextRepaymentMonth);
 		}
-		logger.info(
-			"accountingController generateBulletLoanCashflows execution end"
-		);
+		logger.info("generateBulletLoanCashflows execution end");
 		return {
 			amortisationSchedule,
 			cashFlow,
