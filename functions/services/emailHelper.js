@@ -654,7 +654,9 @@ const SubscriptionFundsSuccess = async (
     <tr>
       <td class="wrapper">
       <p>Dear ${name},</p>
-      <p>The subscription amount of ${amount} towards instrument ${bondName} has been received and acknowledged by Custodian.</p>
+      <p>The subscription amount of ${formatCurrency(
+			amount
+		)} towards instrument ${bondName} has been received and acknowledged by Custodian.</p>
       <p>Thanks,<br/>Team Project iGreen</p>  
       </td>
     </tr>`;
@@ -680,7 +682,9 @@ const SubscriptionFundsFailed = async (
     <tr>
       <td class="wrapper">
       <p>Dear ${name},</p>
-      <p>The subscription amount of ${amount} towards instrument ${bondName} has been not been received by Custodian.</p>
+      <p>The subscription amount of ${formatCurrency(
+			amount
+		)} towards instrument ${bondName} has been not been received by Custodian.</p>
       <p>Kindly check and re-initiate the subscription process.</p>
       <p>Thanks,<br/>Team Project iGreen</p>  
       </td>
@@ -707,7 +711,9 @@ const DisbursementFundsSuccess = async (
     <tr>
       <td class="wrapper">
       <p>Dear ${name},</p>
-      <p>The disbursement amount of ${amount} towards instrument ${bondName} has been received and acknowledged by Issuer.</p>
+      <p>The disbursement amount of ${formatCurrency(
+			amount
+		)} towards instrument ${bondName} has been received and acknowledged by Issuer.</p>
       <p>Thanks,<br/>Team Project iGreen</p>  
       </td>
     </tr>`;
@@ -733,7 +739,9 @@ const DisbursementFundsFailed = async (
     <tr>
       <td class="wrapper">
       <p>Dear ${name},</p>
-      <p>The disbursement amount of ${amount} towards instrument ${bondName} has been not been received by Issuer.</p>
+      <p>The disbursement amount of ${formatCurrency(
+			amount
+		)} towards instrument ${bondName} has been not been received by Issuer.</p>
       <p>Kindly check and re-initiate the subscription process.</p>
       <p>Thanks,<br/>Team Project iGreen</p>  
       </td>
