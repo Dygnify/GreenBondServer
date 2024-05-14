@@ -21,6 +21,7 @@ const {
 	sortObject,
 	convertTimestampToDate,
 	generateHash,
+	convertTimestampToDateDashed,
 } = require("../helper/helperFunctions");
 const { createNft } = require("./nft");
 const { getTokenized, createTokenized } = require("./tokenizedBond");
@@ -270,15 +271,15 @@ const createTx = async (transaction) => {
 
 				case "BorrowConfirm":
 					try {
-						const result = await borrowTransactionConfirm(
+						const bond = await borrowTransactionConfirm(
 							originalData
 						);
 
-						const custodianCompanyName = await getUserProfile(
-							bond.custodian
-						);
+						if (bond?.custodian) {
+							const custodianCompanyName = await getUserProfile(
+								bond.custodian
+							);
 
-						if (result?.Id) {
 							await DisbursementFundsSuccess(
 								custodianCompanyName
 									? custodianCompanyName
@@ -290,6 +291,7 @@ const createTx = async (transaction) => {
 								originalData.amount
 							);
 						}
+
 						break;
 					} catch (error) {
 						logger.error(error);
@@ -599,13 +601,14 @@ const borrowTransactionConfirm = async (originalData) => {
 		interestRatePercentage: +bond.loan_interest,
 		tenureInMonths: +bond.loan_tenure / 30,
 		paymentFrequencyInDays: +bond.payment_frequency,
-		disbursmentDate: convertTimestampToDate(
+		disbursmentDate: convertTimestampToDateDashed(
 			tokenizedBond.repaymentStartTime
 		),
 		investorUpfrontFees: +bond.investorUpfrontFeesPercentage,
-		platformFeesPercentage: bond.percentageOfCoupon
-			? +bond.percentageOfCoupon
-			: 10,
+		platformFeesPercentage:
+			bond.percentageOfCoupon !== undefined
+				? +bond.percentageOfCoupon
+				: 0,
 		JuniorContributionPercentage: +bond.juniorTranchPercentage,
 		JuniorPrincipalFloatPercentage:
 			+bond.juniorTranchFloatInterestPercentage,
@@ -643,7 +646,11 @@ const borrowTransactionConfirm = async (originalData) => {
 			});
 		}
 	}
-	return bondResult;
+	if (bondResult?.Id) {
+		return bond;
+	} else {
+		return;
+	}
 };
 
 module.exports = { createTx, getTx, getAllTx };

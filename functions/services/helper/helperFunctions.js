@@ -20,6 +20,16 @@ function convertTimestampToDate(timestamp) {
 	return day + "/" + month + "/" + year; // returns the date in DD/MM/YYYY format
 }
 
+function convertTimestampToDateDashed(timestamp) {
+	const date = new Date(timestamp);
+	const year = date.getFullYear();
+	const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Adding 1 because months are 0-based
+	const day = date.getDate().toString().padStart(2, "0");
+
+	const formattedDate = `${year}-${month}-${day}`;
+	return formattedDate;
+}
+
 function formatCurrency(number) {
 	var fNum = parseFloat(number).toFixed(2);
 	// Convert number to string
@@ -100,4 +110,5 @@ module.exports = {
 	decryptData,
 	sortObject,
 	generateHash,
+	convertTimestampToDateDashed,
 };
