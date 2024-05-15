@@ -528,7 +528,7 @@ const getEmailAndNameByUserId = async (Id) => {
 };
 
 const getUserProfile = async (email) => {
-	const user = getUserWithEmail(email);
+	const user = await getUserWithEmail(email);
 	const userProfile = JSON.parse(user.profile);
 	const userCompanyName = userProfile.companyName;
 	return userCompanyName;
