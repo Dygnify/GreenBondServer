@@ -520,18 +520,39 @@ function generateSecurePassword(length) {
 }
 
 const getEmailAndNameByUserId = async (Id) => {
-	const res = await getUser(Id);
-	const profile = JSON.parse(res.data.profile);
-	const companyName = profile.companyName;
-	const email = res.data.email;
-	return { email: email, companyName: companyName };
+	logger.info(
+		"hyperLedger userAsset getEmailAndNameByUserId execution started"
+	);
+	logger.log(`Id: ${Id}`);
+	try {
+		const res = await getUser(Id);
+		const profile = JSON.parse(res.data.profile);
+		const companyName = profile.companyName;
+		const email = res.data.email;
+		logger.info(
+			"hyperLedger userAsset getEmailAndNameByUserId execution end"
+		);
+		return { email: email, companyName: companyName };
+	} catch (error) {
+		logger.log(error);
+	}
 };
 
 const getUserProfile = async (email) => {
-	const user = await getUserWithEmail(email);
-	const userProfile = JSON.parse(user.profile);
-	const userCompanyName = userProfile.companyName;
-	return userCompanyName;
+	logger.info("hyperLedger userAsset getUserProfile execution started");
+	logger.log(`email: ${email}`);
+	if (!email) {
+		return;
+	}
+	try {
+		const user = await getUserWithEmail(email);
+		const userProfile = JSON.parse(user.profile);
+		const userCompanyName = userProfile.companyName;
+		logger.info("hyperLedger userAsset getUserProfile execution end");
+		return userCompanyName;
+	} catch (error) {
+		logger.log(error);
+	}
 };
 
 module.exports = {
