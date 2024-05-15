@@ -144,15 +144,14 @@ const createTx = async (transaction) => {
 					: originalData.issuerId
 			);
 
-			let bond;
+			let bond = await getGreenBond({
+				field: "Id",
+				value: originalData.bondId,
+			});
+			bond = bond.data;
 			switch (action) {
 				case "InvestConfirm":
 					try {
-						bond = await getGreenBond({
-							field: "Id",
-							value: originalData.bondId,
-						});
-						bond = bond.data;
 						let totalSubscribed = bond.totalSubscribed
 							? bond.totalSubscribed
 							: 0;
@@ -181,12 +180,6 @@ const createTx = async (transaction) => {
 
 				case "InvestReject":
 					try {
-						bond = await getGreenBond({
-							field: "Id",
-							value: originalData.bondId,
-						});
-						bond = bond.data;
-
 						await SubscriptionFundsFailed(
 							companyName ? companyName : "User",
 							email,
@@ -202,11 +195,12 @@ const createTx = async (transaction) => {
 
 				case "BorrowConfirm":
 					try {
-						const bond = await borrowTransactionConfirm(
-							originalData
+						const res = await borrowTransactionConfirm(
+							originalData,
+							bond
 						);
 
-						if (bond?.custodian) {
+						if (res?.Id) {
 							const custodianCompanyName = await getUserProfile(
 								bond.custodian
 							);
@@ -229,12 +223,6 @@ const createTx = async (transaction) => {
 
 				case "BorrowReject":
 					try {
-						bond = await getGreenBond({
-							field: "Id",
-							value: originalData.bondId,
-						});
-						bond = bond.data;
-
 						var custodianCompanyName = await getUserProfile(
 							bond.custodian
 						);
@@ -255,12 +243,6 @@ const createTx = async (transaction) => {
 
 				case "RepayConfirm":
 					try {
-						bond = await getGreenBond({
-							field: "Id",
-							value: originalData.bondId,
-						});
-						bond = bond.data;
-
 						let tokenizedBond = await getTokenized(
 							"bondId",
 							originalData.bondId
@@ -602,13 +584,7 @@ const getInvestmentDetails = async (transactions) => {
 	return trx;
 };
 
-const borrowTransactionConfirm = async (originalData) => {
-	let bond = await getGreenBond({
-		field: "Id",
-		value: originalData.bondId,
-	});
-	bond = bond.data;
-
+const borrowTransactionConfirm = async (originalData, bond) => {
 	let tokenizedBond = {};
 	tokenizedBond.bondId = bond.Id;
 	tokenizedBond.bondType = bond.loan_type;
@@ -754,11 +730,7 @@ const borrowTransactionConfirm = async (originalData) => {
 			});
 		}
 	}
-	if (bondResult?.Id) {
-		return bond;
-	} else {
-		return;
-	}
+	return bondResult;
 };
 
 module.exports = { createTx, getTx, getAllTx };
