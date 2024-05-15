@@ -10,7 +10,6 @@ const {
 	DisbursementFundsFailed,
 	RepaymentFundsSuccess,
 	RepaymentFundsFailed,
-	tokenizeBond,
 } = require("../emailHelper");
 const {
 	getUser,
