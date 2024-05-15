@@ -8,6 +8,8 @@ const {
 	SubscriptionFundsFailed,
 	DisbursementFundsSuccess,
 	DisbursementFundsFailed,
+	RepaymentFundsSuccess,
+	RepaymentFundsFailed,
 } = require("../emailHelper");
 const {
 	getUser,
@@ -25,7 +27,6 @@ const {
 } = require("../helper/helperFunctions");
 const { createNft } = require("./nft");
 const { getTokenized, createTokenized } = require("./tokenizedBond");
-const CryptoJS = require("crypto-js");
 const { getGreenBond, createGreenBond } = require("./greenBond");
 const {
 	getTermLoanAmortisation,
@@ -399,16 +400,35 @@ const createTx = async (transaction) => {
 								updatedTokenizedData
 							);
 
-							if (!res.Id) {
-								throw new Error(
-									"Unable to update tokenized bond"
+							if (res.Id) {
+								await RepaymentFundsSuccess(
+									companyName ? companyName : "User",
+									email,
+									bond.custodian,
+									admins,
+									originalData.bondName,
+									originalData.amount
 								);
 							}
 						}
 					} catch (error) {
 						logger.error(error);
 					}
+					break;
 
+				case "RepayReject":
+					try {
+						await RepaymentFundsFailed(
+							companyName ? companyName : "User",
+							email,
+							bond.custodian,
+							admins,
+							originalData.bondName,
+							originalData.amount
+						);
+					} catch (error) {
+						logger.error(error);
+					}
 					break;
 
 				default:
