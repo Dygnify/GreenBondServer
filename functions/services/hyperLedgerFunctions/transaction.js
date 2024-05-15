@@ -10,6 +10,7 @@ const {
 	DisbursementFundsFailed,
 	RepaymentFundsSuccess,
 	RepaymentFundsFailed,
+	tokenizeBond,
 } = require("../emailHelper");
 const {
 	getUser,
@@ -195,10 +196,7 @@ const createTx = async (transaction) => {
 
 				case "BorrowConfirm":
 					try {
-						const res = await borrowTransactionConfirm(
-							originalData,
-							bond
-						);
+						const res = await borrowTransactionConfirm(bond);
 
 						if (res?.Id) {
 							const custodianCompanyName = await getUserProfile(
@@ -584,7 +582,7 @@ const getInvestmentDetails = async (transactions) => {
 	return trx;
 };
 
-const borrowTransactionConfirm = async (originalData, bond) => {
+const borrowTransactionConfirm = async (bond) => {
 	let tokenizedBond = {};
 	tokenizedBond.bondId = bond.Id;
 	tokenizedBond.bondType = bond.loan_type;
@@ -635,50 +633,19 @@ const borrowTransactionConfirm = async (originalData, bond) => {
 			hash: greenDataHashString,
 		});
 	}
-	const companyDetails = JSON.parse(bond.companyDetails);
 
 	let transactions = await getTx("bondId", bond.Id);
 	transactions = transactions.records ? transactions.records : [];
 	transactions = transactions.map((tx) => tx.data);
 
-	let trx = await getInvestmentDetails(transactions);
-
-	let nftData = {
-		functionName: "CreateGreenBondNFT",
-		identity: bond.custodian,
-		args: [
-			uuid.v4(),
-			{
-				name: bond.loan_name,
-				amount: bond.loan_amount,
-				couponRate: bond.loan_interest,
-				issueDate: convertTimestampToDate(
-					tokenizedBond.repaymentStartTime
-				),
-				tenure: bond.loan_tenure,
-				bondType: bond.loan_type,
-				paymentFrequency: bond.payment_frequency,
-				collateralDocHash: bond.collateralHash,
-				capitalLossPercentage: bond.capital_loss,
-			},
-			companyDetails?.companyName,
-			bond.custodian,
-			trx.map((element) => {
-				return {
-					subscriber: element.email,
-					amount: element.amount,
-				};
-			}),
-			[
-				{
-					time: date,
-					hash: hashString,
-				},
-			],
-			[...monitoringData],
-			[...greenData],
-		],
-	};
+	let nftData = await nftOptions(
+		bond,
+		tokenizedBond.repaymentStartTime,
+		date,
+		hashString,
+		monitoringData,
+		greenData
+	);
 
 	const amortisationData = {
 		loanAmount: +bond.loan_amount,
@@ -731,6 +698,59 @@ const borrowTransactionConfirm = async (originalData, bond) => {
 		}
 	}
 	return bondResult;
+};
+
+const nftOptions = async (
+	bond,
+	repaymentStartTime,
+	date,
+	hashString,
+	monitoringData,
+	greenData
+) => {
+	const companyDetails = JSON.parse(bond.companyDetails);
+
+	let transactions = await getTx("bondId", bond.Id);
+	transactions = transactions.records ? transactions.records : [];
+	transactions = transactions.map((tx) => tx.data);
+
+	let trx = await getInvestmentDetails(transactions);
+
+	let nftData = {
+		functionName: "CreateGreenBondNFT",
+		identity: bond.custodian,
+		args: [
+			uuid.v4(),
+			{
+				name: bond.loan_name,
+				amount: bond.loan_amount,
+				couponRate: bond.loan_interest,
+				issueDate: convertTimestampToDate(repaymentStartTime),
+				tenure: bond.loan_tenure,
+				bondType: bond.loan_type,
+				paymentFrequency: bond.payment_frequency,
+				collateralDocHash: bond.collateralHash,
+				capitalLossPercentage: bond.capital_loss,
+			},
+			companyDetails?.companyName,
+			bond.custodian,
+			trx.map((element) => {
+				return {
+					subscriber: element.email,
+					amount: element.amount,
+				};
+			}),
+			[
+				{
+					time: date,
+					hash: hashString,
+				},
+			],
+			[...monitoringData],
+			[...greenData],
+		],
+	};
+	return nftData;
 };
 
 module.exports = { createTx, getTx, getAllTx };
