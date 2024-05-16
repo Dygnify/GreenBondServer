@@ -749,6 +749,9 @@ const payoutConfirm = async (
 	admins
 ) => {
 	try {
+		logger.info(
+			"hyperLedger transaction createTx payoutConfirm execution started"
+		);
 		let transactions = await getTx("bondId", bond.Id);
 		transactions = transactions.records ? transactions.records : [];
 		transactions = transactions.map((tx) => tx.data);
@@ -802,6 +805,9 @@ const payoutConfirm = async (
 							args: [nftId],
 						};
 						const nftRes = await createNft(nftData);
+						logger.info(
+							"hyperLedger transaction createTx payoutConfirm execution end"
+						);
 						return nftRes;
 					}
 				}
