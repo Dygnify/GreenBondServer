@@ -10,6 +10,8 @@ const {
 	DisbursementFundsFailed,
 	RepaymentFundsSuccess,
 	RepaymentFundsFailed,
+	PayoutFundsSuccess,
+	PayoutFundsFailed,
 } = require("../emailHelper");
 const {
 	getUser,
@@ -114,30 +116,7 @@ const createTx = async (transaction) => {
 				admins.push(user.data.email);
 			}
 		});
-		if (!transaction.Id) {
-			if (transaction?.investorTransactionType === 1) {
-				const res = await getUser(transaction.subscriberId);
-				const profile = JSON.parse(res.data.profile);
-				const companyName = profile.companyName;
-				let custodians = [];
-				const results = await getAllUser();
-
-				results.records.forEach((user) => {
-					if (user.data.role === 2) {
-						custodians.push(user.data.email);
-					}
-				});
-				await distributePay(
-					companyName ? companyName : "User",
-					res.data.email,
-					custodians,
-					originalData.bondName,
-					originalData.amount,
-					originalData.transactionDate,
-					admins
-				);
-			}
-		} else {
+		if (transaction.Id) {
 			const { email, companyName } = await getEmailAndNameByUserId(
 				originalData.subscriberId
 					? originalData.subscriberId
@@ -410,6 +389,54 @@ const createTx = async (transaction) => {
 					}
 					break;
 
+				case "PayoutConfirm":
+					try {
+						const result = await payoutConfirm(
+							bond,
+							originalData,
+							companyName,
+							email,
+							admins
+						);
+						if (result.success) {
+							var custodianCompanyName = await getUserProfile(
+								bond.custodian
+							);
+							await PayoutFundsSuccess(
+								custodianCompanyName
+									? custodianCompanyName
+									: "User",
+								bond.custodian,
+								email,
+								admins,
+								originalData.bondName,
+								originalData.amount
+							);
+						}
+					} catch (error) {
+						logger.error(error);
+					}
+					break;
+
+				case "PayoutReject":
+					try {
+						var custodianCompanyName = await getUserProfile(
+							bond.custodian
+						);
+						await PayoutFundsFailed(
+							custodianCompanyName
+								? custodianCompanyName
+								: "User",
+							bond.custodian,
+							email,
+							admins,
+							originalData.bondName,
+							originalData.amount
+						);
+					} catch (error) {
+						logger.error(error);
+					}
+					break;
 				default:
 					break;
 			}
@@ -581,6 +608,21 @@ const getInvestmentDetails = async (transactions) => {
 	return trx;
 };
 
+const getPendingTransactions = async (transactions) => {
+	let paymentPendingTrx = [];
+	for (let index = 0; index < transactions.length; index++) {
+		const element = transactions[index];
+		if (
+			element.issuerId &&
+			element.status === TransactionStatus.Completed &&
+			element.isCouponRateDistributionPending
+		) {
+			paymentPendingTrx.push(element);
+		}
+	}
+	return paymentPendingTrx;
+};
+
 const borrowTransactionConfirm = async (bond) => {
 	let tokenizedBond = {};
 	tokenizedBond.bondId = bond.Id;
@@ -697,6 +739,77 @@ const borrowTransactionConfirm = async (bond) => {
 		}
 	}
 	return bondResult;
+};
+
+const payoutConfirm = async (
+	bond,
+	originalData,
+	companyName,
+	email,
+	admins
+) => {
+	try {
+		let transactions = await getTx("bondId", bond.Id);
+		transactions = transactions.records ? transactions.records : [];
+		transactions = transactions.map((tx) => tx.data);
+
+		let pendingPaymentTrx = await getPendingTransactions(transactions);
+
+		for (let i = 0; i < pendingPaymentTrx.length; i++) {
+			const pendingPayment = pendingPaymentTrx[i];
+
+			let transaction = {
+				...pendingPayment,
+				isCouponRateDistributionPending: false,
+			};
+
+			const res = await createTx(transaction);
+
+			if (res.Id) {
+				await distributePay(
+					companyName ? companyName : "User",
+					email,
+					bond.custodian,
+					originalData.bondName,
+					originalData.amount,
+					originalData.transactionDate,
+					admins
+				);
+
+				let tokenizedBond = await getTokenized(
+					"bondId",
+					originalData.bondId
+				);
+				tokenizedBond = tokenizedBond.records[0].data;
+
+				const custodianEmail = tokenizedBond.custodian;
+				const nftId = tokenizedBond.nftId;
+
+				if (
+					tokenizedBond.repaymentCounter >
+					tokenizedBond.totalRepayments
+				) {
+					const result = await createGreenBond({
+						...bond,
+						status: 6,
+						action: "Mature Bond",
+					});
+
+					if (result.Id) {
+						const nftData = {
+							functionName: "BurnGreenBondNFT",
+							identity: custodianEmail,
+							args: [nftId],
+						};
+						const nftRes = await createNft(nftData);
+						return nftRes;
+					}
+				}
+			}
+		}
+	} catch (error) {
+		logger.log(error);
+	}
 };
 
 const nftOptions = async (

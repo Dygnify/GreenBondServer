@@ -806,6 +806,49 @@ const RepaymentFundsFailed = async (name, email, cc, bcc, bondName, amount) => {
 	);
 };
 
+const PayoutFundsSuccess = async (name, email, cc, bcc, bondName, amount) => {
+	const mainBody = `<!-- START MAIN CONTENT AREA -->
+    <tr>
+      <td class="wrapper">
+      <p>Dear ${name},</p>
+      <p>The payout amount of ${formatCurrency(
+			amount
+		)} towards instrument ${bondName} has been received and acknowledged by Subscriber.</p>
+      <p>Thanks,<br/>Team Project iGreen</p>  
+      </td>
+    </tr>`;
+
+	await sendEmail(
+		email,
+		"Project iGreen - Green Bond tokenized and allotted",
+		mainBody,
+		cc,
+		bcc
+	);
+};
+
+const PayoutFundsFailed = async (name, email, cc, bcc, bondName, amount) => {
+	const mainBody = `<!-- START MAIN CONTENT AREA -->
+    <tr>
+      <td class="wrapper">
+      <p>Dear ${name},</p>
+      <p>The payout amount of ${formatCurrency(
+			amount
+		)} towards instrument ${bondName} has been not been received by Subscriber.</p>
+      <p>Kindly check and re-initiate the payout process.</p>
+      <p>Thanks,<br/>Team Project iGreen</p>  
+      </td>
+    </tr>`;
+
+	await sendEmail(
+		email,
+		"Project iGreen - Green Bond tokenized and allotted",
+		mainBody,
+		cc,
+		bcc
+	);
+};
+
 const sendEmail = async (to, subject, mainBody, cc = "", bcc = "") => {
 	logger.info("emailHelper sendEmail execution started");
 	try {
@@ -847,4 +890,6 @@ module.exports = {
 	DisbursementFundsFailed,
 	RepaymentFundsSuccess,
 	RepaymentFundsFailed,
+	PayoutFundsSuccess,
+	PayoutFundsFailed,
 };
