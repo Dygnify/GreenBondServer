@@ -14,45 +14,24 @@ const {
 	PayoutFundsFailed,
 } = require("../emailHelper");
 const {
-	getUser,
 	getAllUser,
 	getUserProfile,
 	getEmailAndNameByUserId,
 } = require("./userAsset");
-const {
-	encryptData,
-	decryptData,
-	sortObject,
-	convertTimestampToDate,
-	generateHash,
-	convertTimestampToDateDashed,
-} = require("../helper/helperFunctions");
-const { createNft } = require("./nft");
+const { encryptData, decryptData } = require("../helper/helperFunctions");
 const { getTokenized, createTokenized } = require("./tokenizedBond");
 const { getGreenBond, createGreenBond } = require("./greenBond");
 const {
 	getTermLoanAmortisation,
 	getBulletLoanAmortisation,
 } = require("../amortisation/amortisationSchedule");
-const { getGreenScore } = require("../greenScore");
-const { getGreenData } = require("../greenData");
-const { getMonitoringData } = require("../monitoringData");
-
-const InvestorTransactionType = {
-	Invest: 0,
-	Payout: 1,
-};
-
-const BorrowerTransactionType = {
-	Borrowed: 0,
-	Repaid: 1,
-};
-
-const TransactionStatus = {
-	InVerification: 0,
-	Completed: 1,
-	Failed: 2,
-};
+const {
+	createGreenBondNft,
+	burnGreenBondNft,
+	updateGreenBondNft,
+} = require("../helper/nftHelper");
+const { amortisationOptions } = require("../helper/amortisationHelper");
+const { getPendingTransactions } = require("../helper/transactionHelper");
 
 const createTxOption = (transaction) => {
 	if (!transaction) {
@@ -128,6 +107,7 @@ const createTx = async (transaction) => {
 				value: originalData.bondId,
 			});
 			bond = bond.data;
+			const custodianCompanyName = await getUserProfile(bond.custodian);
 			switch (action) {
 				case "InvestConfirm":
 					try {
@@ -177,10 +157,6 @@ const createTx = async (transaction) => {
 						const res = await borrowTransactionConfirm(bond);
 
 						if (res?.Id) {
-							const custodianCompanyName = await getUserProfile(
-								bond.custodian
-							);
-
 							await DisbursementFundsSuccess(
 								custodianCompanyName
 									? custodianCompanyName
@@ -199,9 +175,6 @@ const createTx = async (transaction) => {
 
 				case "BorrowReject":
 					try {
-						var custodianCompanyName = await getUserProfile(
-							bond.custodian
-						);
 						await DisbursementFundsFailed(
 							custodianCompanyName
 								? custodianCompanyName
@@ -219,155 +192,21 @@ const createTx = async (transaction) => {
 
 				case "RepayConfirm":
 					try {
-						let tokenizedBond = await getTokenized(
-							"bondId",
-							originalData.bondId
+						const result = await repayTransactionConfirm(
+							bond,
+							originalData,
+							email,
+							admins
 						);
-						tokenizedBond = tokenizedBond.records[0].data;
-
-						const date = originalData.investedOn;
-
-						//Sorting is needed, because later we will verify the hash
-						const sortedTxData = sortObject(originalData);
-						let hashString = generateHash(sortedTxData);
-
-						// Get custodian email from tokenizedBond
-						const custodianEmail = tokenizedBond.custodian;
-
-						// Get nft Id
-						const nftId = tokenizedBond.nftId;
-
-						let nftData = {
-							functionName: "UpdateGreenBondNFTDynamicData",
-							identity: custodianEmail,
-							args: [
-								nftId,
-								"repayments",
-								{
-									time: date,
-									hash: hashString,
-								},
-							],
-						};
-
-						// Save repayment tx hash and time in NFT
-						let nftRes = await createNft(nftData);
-						if (nftRes.success) {
-							const custodianCompanyName = await getUserProfile(
-								custodianEmail
-							);
-							await repayment(
-								custodianCompanyName
-									? custodianCompanyName
-									: "User",
-								custodianEmail,
+						if (result.Id) {
+							await RepaymentFundsSuccess(
+								companyName ? companyName : "User",
 								email,
+								bond.custodian,
+								admins,
 								originalData.bondName,
-								originalData.amount,
-								originalData.transactionDate,
-								admins
+								originalData.amount
 							);
-							let principalPortion,
-								principalAmt,
-								totalPaidAmt,
-								repaymentAmount,
-								nextRepaymentAmount;
-
-							const amortisationData = {
-								loanAmount: +bond.loan_amount,
-								interestRatePercentage: +bond.loan_interest,
-								tenureInMonths: +bond.loan_tenure / 30,
-								paymentFrequencyInDays: +bond.payment_frequency,
-								disbursmentDate: convertTimestampToDateDashed(
-									tokenizedBond.repaymentStartTime
-								),
-								investorUpfrontFees:
-									+bond.investorUpfrontFeesPercentage,
-								platformFeesPercentage:
-									bond.percentageOfCoupon !== undefined
-										? +bond.percentageOfCoupon
-										: 0,
-								JuniorContributionPercentage:
-									+bond.juniorTranchPercentage,
-								JuniorPrincipalFloatPercentage:
-									+bond.juniorTranchFloatInterestPercentage,
-							};
-
-							if (bond.loan_type === "1") {
-								let res =
-									getTermLoanAmortisation(amortisationData);
-								principalPortion =
-									res.amortisationSchedule[
-										tokenizedBond.repaymentCounter - 1
-									].principal;
-								principalAmt =
-									res.amortisationSchedule[
-										tokenizedBond.repaymentCounter - 1
-									].remainingPrincipal;
-								repaymentAmount =
-									res.amortisationSchedule[
-										tokenizedBond.repaymentCounter - 1
-									].totalPayment;
-								nextRepaymentAmount = repaymentAmount;
-								totalPaidAmt =
-									+tokenizedBond.totalRepaidAmount +
-									+originalData.amount;
-							} else {
-								let res =
-									getBulletLoanAmortisation(amortisationData);
-								principalPortion = 0;
-								principalAmt =
-									res.amortisationSchedule[
-										tokenizedBond.repaymentCounter - 1
-									].principal;
-								repaymentAmount =
-									res.amortisationSchedule[
-										tokenizedBond.repaymentCounter - 1
-									].totalPayment;
-								nextRepaymentAmount = res.amortisationSchedule[
-									tokenizedBond.repaymentCounter
-								]?.totalPayment
-									? res.amortisationSchedule[
-											tokenizedBond.repaymentCounter
-									  ].totalPayment
-									: "0";
-								totalPaidAmt =
-									+tokenizedBond.totalRepaidAmount +
-									+originalData.amount;
-
-								// if last repayment, then pay with principal amount
-								if (
-									tokenizedBond.repaymentCounter ===
-									tokenizedBond.totalRepayments
-								) {
-									principalPortion = principalAmt;
-									principalAmt = 0;
-								}
-							}
-
-							const updatedTokenizedData = {
-								...tokenizedBond,
-								totalRepaidAmount: totalPaidAmt,
-								repaymentCounter:
-									tokenizedBond.repaymentCounter + 1,
-								totalOutstandingPrincipal: principalAmt,
-								emiAmount: nextRepaymentAmount.toString(),
-							};
-
-							const res = await createTokenized(
-								updatedTokenizedData
-							);
-
-							if (res.Id) {
-								await RepaymentFundsSuccess(
-									companyName ? companyName : "User",
-									email,
-									bond.custodian,
-									admins,
-									originalData.bondName,
-									originalData.amount
-								);
-							}
 						}
 					} catch (error) {
 						logger.error(error);
@@ -391,7 +230,7 @@ const createTx = async (transaction) => {
 
 				case "PayoutConfirm":
 					try {
-						const result = await payoutConfirm(
+						const result = await payoutTransactionConfirm(
 							bond,
 							originalData,
 							companyName,
@@ -399,9 +238,6 @@ const createTx = async (transaction) => {
 							admins
 						);
 						if (result.success) {
-							var custodianCompanyName = await getUserProfile(
-								bond.custodian
-							);
 							await PayoutFundsSuccess(
 								custodianCompanyName
 									? custodianCompanyName
@@ -420,9 +256,6 @@ const createTx = async (transaction) => {
 
 				case "PayoutReject":
 					try {
-						var custodianCompanyName = await getUserProfile(
-							bond.custodian
-						);
 						await PayoutFundsFailed(
 							custodianCompanyName
 								? custodianCompanyName
@@ -587,161 +420,181 @@ const eDCryptTransactionData = (transaction, encrypt = false) => {
 	}
 };
 
-const getInvestmentDetails = async (transactions) => {
-	let trx = [];
-	for (let index = 0; index < transactions.length; index++) {
-		const element = transactions[index];
-		if (
-			element.subscriberId &&
-			element.status === TransactionStatus.Completed &&
-			element.investorTransactionType === InvestorTransactionType.Invest
-		) {
-			// get the subscriber
-			const result = await getUser(element.subscriberId);
-			const subData = result.data;
-			trx.push({
-				email: subData?.email,
-				amount: element.amount,
-			});
-		}
-	}
-	return trx;
-};
-
-const getPendingTransactions = async (transactions) => {
-	let paymentPendingTrx = [];
-	for (let index = 0; index < transactions.length; index++) {
-		const element = transactions[index];
-		if (
-			element.issuerId &&
-			element.status === TransactionStatus.Completed &&
-			element.isCouponRateDistributionPending
-		) {
-			paymentPendingTrx.push(element);
-		}
-	}
-	return paymentPendingTrx;
-};
-
 const borrowTransactionConfirm = async (bond) => {
-	let tokenizedBond = {};
-	tokenizedBond.bondId = bond.Id;
-	tokenizedBond.bondType = bond.loan_type;
-	tokenizedBond.bondAmount = +bond.loan_amount;
-	tokenizedBond.bondTenureInMonths = bond.loan_tenure;
-	tokenizedBond.bondInterest = +bond.loan_interest;
-	tokenizedBond.paymentFrequencyInDays = bond.payment_frequency;
-	tokenizedBond.repaymentStartTime = Date.now();
-	tokenizedBond.repaymentCounter = 1;
-	tokenizedBond.custodian = bond.custodian;
+	try {
+		logger.info(
+			"hyperLedger transaction createTx borrowTransactionConfirm execution started"
+		);
+		let tokenizedBond = {};
+		tokenizedBond.bondId = bond.Id;
+		tokenizedBond.bondType = bond.loan_type;
+		tokenizedBond.bondAmount = +bond.loan_amount;
+		tokenizedBond.bondTenureInMonths = bond.loan_tenure;
+		tokenizedBond.bondInterest = +bond.loan_interest;
+		tokenizedBond.paymentFrequencyInDays = bond.payment_frequency;
+		tokenizedBond.repaymentStartTime = Date.now();
+		tokenizedBond.repaymentCounter = 1;
+		tokenizedBond.custodian = bond.custodian;
 
-	tokenizedBond.totalRepaidAmount = 0;
-	tokenizedBond.totalOutstandingPrincipal = +bond.loan_amount;
-	tokenizedBond.totalRepayments = bond.loan_tenure / bond.payment_frequency;
+		tokenizedBond.totalRepaidAmount = 0;
+		tokenizedBond.totalOutstandingPrincipal = +bond.loan_amount;
+		tokenizedBond.totalRepayments =
+			bond.loan_tenure / bond.payment_frequency;
 
-	// Get GreenScore
-	const scoreResult = await getGreenScore(bond.custodian, bond.loan_name);
-	if (scoreResult?.res?.date === undefined) {
-		throw new Error("Unable to get GreenScore Data");
-	}
-	let date = scoreResult.res.date;
-	let hashString = generateHash(scoreResult.res);
-
-	// Get GreenMonitoring Data
-	const monitoringDataResult = await getMonitoringData(bond.loan_name);
-
-	let monitoringDate = monitoringDataResult.res.date;
-	let monitoringHashString = generateHash(monitoringDataResult.res);
-
-	let monitoringData = [];
-	if (monitoringDataResult?.res?.date !== undefined) {
-		monitoringData.push({
-			time: monitoringDate,
-			hash: monitoringHashString,
-		});
-	}
-
-	// Get Green Data
-	const greenDataResult = await getGreenData(bond.loan_name);
-
-	let greenDataDate = monitoringDate;
-	let greenDataHashString = generateHash(greenDataResult.res);
-
-	let greenData = [];
-	if (greenDataResult?.res?.greenSiteData !== undefined) {
-		greenData.push({
-			time: greenDataDate,
-			hash: greenDataHashString,
-		});
-	}
-
-	let transactions = await getTx("bondId", bond.Id);
-	transactions = transactions.records ? transactions.records : [];
-	transactions = transactions.map((tx) => tx.data);
-
-	let nftData = await nftOptions(
-		bond,
-		tokenizedBond.repaymentStartTime,
-		date,
-		hashString,
-		monitoringData,
-		greenData
-	);
-
-	const amortisationData = {
-		loanAmount: +bond.loan_amount,
-		interestRatePercentage: +bond.loan_interest,
-		tenureInMonths: +bond.loan_tenure / 30,
-		paymentFrequencyInDays: +bond.payment_frequency,
-		disbursmentDate: convertTimestampToDateDashed(
+		const amortisationData = amortisationOptions(
+			bond,
 			tokenizedBond.repaymentStartTime
-		),
-		investorUpfrontFees: +bond.investorUpfrontFeesPercentage,
-		platformFeesPercentage:
-			bond.percentageOfCoupon !== undefined
-				? +bond.percentageOfCoupon
-				: 0,
-		JuniorContributionPercentage: +bond.juniorTranchPercentage,
-		JuniorPrincipalFloatPercentage:
-			+bond.juniorTranchFloatInterestPercentage,
-	};
+		);
 
-	if (bond.loan_type === "1") {
-		let res = getTermLoanAmortisation(amortisationData);
-		tokenizedBond.emiAmount =
-			res.amortisationSchedule[
-				tokenizedBond.repaymentCounter - 1
-			].totalPayment;
-		tokenizedBond.emiAmount = tokenizedBond.emiAmount.toString();
-	} else {
-		let res = getBulletLoanAmortisation(amortisationData);
-		tokenizedBond.emiAmount =
-			res.amortisationSchedule[
-				tokenizedBond.repaymentCounter - 1
-			].totalPayment;
-		tokenizedBond.emiAmount = tokenizedBond.emiAmount.toString();
-	}
-
-	const nftRes = await createNft(nftData);
-	let bondResult;
-	if (nftRes.success) {
-		const res = await createTokenized({
-			...tokenizedBond,
-			nftId: nftRes.res.data.substring(1, nftRes.res.data.length - 1),
-		});
-
-		if (res.Id) {
-			bondResult = await createGreenBond({
-				...bond,
-				status: 5,
-				action: "Tokenize Bond",
-			});
+		if (bond.loan_type === "1") {
+			let res = getTermLoanAmortisation(amortisationData);
+			tokenizedBond.emiAmount =
+				res.amortisationSchedule[
+					tokenizedBond.repaymentCounter - 1
+				].totalPayment;
+			tokenizedBond.emiAmount = tokenizedBond.emiAmount.toString();
+		} else {
+			let res = getBulletLoanAmortisation(amortisationData);
+			tokenizedBond.emiAmount =
+				res.amortisationSchedule[
+					tokenizedBond.repaymentCounter - 1
+				].totalPayment;
+			tokenizedBond.emiAmount = tokenizedBond.emiAmount.toString();
 		}
+
+		const nftRes = await createGreenBondNft(
+			bond,
+			tokenizedBond.repaymentStartTime
+		);
+		let bondResult;
+		if (nftRes.success) {
+			const res = await createTokenized({
+				...tokenizedBond,
+				nftId: nftRes.res.data.substring(1, nftRes.res.data.length - 1),
+			});
+
+			if (res.Id) {
+				bondResult = await createGreenBond({
+					...bond,
+					status: 5,
+					action: "Tokenize Bond",
+				});
+			}
+		}
+		logger.info(
+			"hyperLedger transaction createTx borrowTransactionConfirm execution end"
+		);
+		return bondResult;
+	} catch (error) {
+		logger.log(error);
 	}
-	return bondResult;
 };
 
-const payoutConfirm = async (
+const repayTransactionConfirm = async (bond, originalData, email, admins) => {
+	try {
+		logger.info(
+			"hyperLedger transaction createTx repayTransactionConfirm execution started"
+		);
+		let tokenizedBond = await getTokenized("bondId", originalData.bondId);
+		tokenizedBond = tokenizedBond.records[0].data;
+
+		// Get custodian email from tokenizedBond
+		const custodianEmail = tokenizedBond.custodian;
+
+		// Get nft Id
+		const nftId = tokenizedBond.nftId;
+
+		// Save repayment tx hash and time in NFT
+		let nftRes = await updateGreenBondNft(
+			originalData,
+			custodianEmail,
+			nftId
+		);
+
+		if (nftRes.success) {
+			const custodianCompanyName = await getUserProfile(custodianEmail);
+			await repayment(
+				custodianCompanyName ? custodianCompanyName : "User",
+				custodianEmail,
+				email,
+				originalData.bondName,
+				originalData.amount,
+				originalData.transactionDate,
+				admins
+			);
+			let principalPortion,
+				principalAmt,
+				totalPaidAmt,
+				repaymentAmount,
+				nextRepaymentAmount;
+
+			const amortisationData = amortisationOptions(
+				bond,
+				tokenizedBond.repaymentStartTime
+			);
+
+			if (bond.loan_type === "1") {
+				let res = getTermLoanAmortisation(amortisationData);
+				principalPortion =
+					res.amortisationSchedule[tokenizedBond.repaymentCounter - 1]
+						.principal;
+				principalAmt =
+					res.amortisationSchedule[tokenizedBond.repaymentCounter - 1]
+						.remainingPrincipal;
+				repaymentAmount =
+					res.amortisationSchedule[tokenizedBond.repaymentCounter - 1]
+						.totalPayment;
+				nextRepaymentAmount = repaymentAmount;
+				totalPaidAmt =
+					+tokenizedBond.totalRepaidAmount + +originalData.amount;
+			} else {
+				let res = getBulletLoanAmortisation(amortisationData);
+				principalPortion = 0;
+				principalAmt =
+					res.amortisationSchedule[tokenizedBond.repaymentCounter - 1]
+						.principal;
+				repaymentAmount =
+					res.amortisationSchedule[tokenizedBond.repaymentCounter - 1]
+						.totalPayment;
+				nextRepaymentAmount = res.amortisationSchedule[
+					tokenizedBond.repaymentCounter
+				]?.totalPayment
+					? res.amortisationSchedule[tokenizedBond.repaymentCounter]
+							.totalPayment
+					: "0";
+				totalPaidAmt =
+					+tokenizedBond.totalRepaidAmount + +originalData.amount;
+
+				// if last repayment, then pay with principal amount
+				if (
+					tokenizedBond.repaymentCounter ===
+					tokenizedBond.totalRepayments
+				) {
+					principalPortion = principalAmt;
+					principalAmt = 0;
+				}
+			}
+
+			const updatedTokenizedData = {
+				...tokenizedBond,
+				totalRepaidAmount: totalPaidAmt,
+				repaymentCounter: tokenizedBond.repaymentCounter + 1,
+				totalOutstandingPrincipal: principalAmt,
+				emiAmount: nextRepaymentAmount.toString(),
+			};
+
+			const res = await createTokenized(updatedTokenizedData);
+			logger.info(
+				"hyperLedger transaction createTx repayTransactionConfirm execution end"
+			);
+			return res;
+		}
+	} catch (error) {
+		logger.error(error);
+	}
+};
+
+const payoutTransactionConfirm = async (
 	bond,
 	originalData,
 	companyName,
@@ -750,7 +603,7 @@ const payoutConfirm = async (
 ) => {
 	try {
 		logger.info(
-			"hyperLedger transaction createTx payoutConfirm execution started"
+			"hyperLedger transaction createTx payoutTransactionConfirm execution started"
 		);
 		let transactions = await getTx("bondId", bond.Id);
 		transactions = transactions.records ? transactions.records : [];
@@ -799,14 +652,12 @@ const payoutConfirm = async (
 					});
 
 					if (result.Id) {
-						const nftData = {
-							functionName: "BurnGreenBondNFT",
-							identity: custodianEmail,
-							args: [nftId],
-						};
-						const nftRes = await createNft(nftData);
+						const nftRes = await burnGreenBondNft(
+							custodianEmail,
+							nftId
+						);
 						logger.info(
-							"hyperLedger transaction createTx payoutConfirm execution end"
+							"hyperLedger transaction createTx payoutTransactionConfirm execution end"
 						);
 						return nftRes;
 					}
@@ -816,59 +667,6 @@ const payoutConfirm = async (
 	} catch (error) {
 		logger.log(error);
 	}
-};
-
-const nftOptions = async (
-	bond,
-	repaymentStartTime,
-	date,
-	hashString,
-	monitoringData,
-	greenData
-) => {
-	const companyDetails = JSON.parse(bond.companyDetails);
-
-	let transactions = await getTx("bondId", bond.Id);
-	transactions = transactions.records ? transactions.records : [];
-	transactions = transactions.map((tx) => tx.data);
-
-	let trx = await getInvestmentDetails(transactions);
-
-	let nftData = {
-		functionName: "CreateGreenBondNFT",
-		identity: bond.custodian,
-		args: [
-			uuid.v4(),
-			{
-				name: bond.loan_name,
-				amount: bond.loan_amount,
-				couponRate: bond.loan_interest,
-				issueDate: convertTimestampToDate(repaymentStartTime),
-				tenure: bond.loan_tenure,
-				bondType: bond.loan_type,
-				paymentFrequency: bond.payment_frequency,
-				collateralDocHash: bond.collateralHash,
-				capitalLossPercentage: bond.capital_loss,
-			},
-			companyDetails?.companyName,
-			bond.custodian,
-			trx.map((element) => {
-				return {
-					subscriber: element.email,
-					amount: element.amount,
-				};
-			}),
-			[
-				{
-					time: date,
-					hash: hashString,
-				},
-			],
-			[...monitoringData],
-			[...greenData],
-		],
-	};
-	return nftData;
 };
 
 module.exports = { createTx, getTx, getAllTx };
