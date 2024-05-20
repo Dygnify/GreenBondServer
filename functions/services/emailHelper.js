@@ -720,7 +720,7 @@ const DisbursementFundsSuccess = async (
 
 	await sendEmail(
 		email,
-		"Project iGreen - Green Bond subscribed",
+		"Project iGreen - Green Bond tokenized and allotted",
 		mainBody,
 		cc,
 		bcc
@@ -749,7 +749,100 @@ const DisbursementFundsFailed = async (
 
 	await sendEmail(
 		email,
-		"Project iGreen - Green Bond subscribed",
+		"Project iGreen - Green Bond tokenized and allotted",
+		mainBody,
+		cc,
+		bcc
+	);
+};
+
+const RepaymentFundsSuccess = async (
+	name,
+	email,
+	cc,
+	bcc,
+	bondName,
+	amount
+) => {
+	const mainBody = `<!-- START MAIN CONTENT AREA -->
+    <tr>
+      <td class="wrapper">
+      <p>Dear ${name},</p>
+      <p>The repayment amount of ${formatCurrency(
+			amount
+		)} towards instrument ${bondName} has been received and acknowledged by Custodian.</p>
+      <p>Thanks,<br/>Team Project iGreen</p>  
+      </td>
+    </tr>`;
+
+	await sendEmail(
+		email,
+		"Project iGreen - Green Bond tokenized and allotted",
+		mainBody,
+		cc,
+		bcc
+	);
+};
+
+const RepaymentFundsFailed = async (name, email, cc, bcc, bondName, amount) => {
+	const mainBody = `<!-- START MAIN CONTENT AREA -->
+    <tr>
+      <td class="wrapper">
+      <p>Dear ${name},</p>
+      <p>The repayment amount of ${formatCurrency(
+			amount
+		)} towards instrument ${bondName} has been not been received by Custodian.</p>
+      <p>Kindly check and re-initiate the repayment process.</p>
+      <p>Thanks,<br/>Team Project iGreen</p>  
+      </td>
+    </tr>`;
+
+	await sendEmail(
+		email,
+		"Project iGreen - Green Bond tokenized and allotted",
+		mainBody,
+		cc,
+		bcc
+	);
+};
+
+const PayoutFundsSuccess = async (name, email, cc, bcc, bondName, amount) => {
+	const mainBody = `<!-- START MAIN CONTENT AREA -->
+    <tr>
+      <td class="wrapper">
+      <p>Dear ${name},</p>
+      <p>The payout amount of ${formatCurrency(
+			amount
+		)} towards instrument ${bondName} has been received and acknowledged by Subscriber.</p>
+      <p>Thanks,<br/>Team Project iGreen</p>  
+      </td>
+    </tr>`;
+
+	await sendEmail(
+		email,
+		"Project iGreen - Green Bond tokenized and allotted",
+		mainBody,
+		cc,
+		bcc
+	);
+};
+
+const PayoutFundsFailed = async (name, email, cc, bcc, bondName, amount) => {
+	const mainBody = `<!-- START MAIN CONTENT AREA -->
+    <tr>
+      <td class="wrapper">
+      <p>Dear ${name},</p>
+      <p>The payout amount of ${formatCurrency(
+			amount
+		)} towards instrument ${bondName} has been not been received by Subscriber.</p>
+      <p>Kindly check and re-initiate the payout process.</p>
+      <p>Thanks,<br/>Team Project iGreen</p>  
+      </td>
+    </tr>`;
+
+	await sendEmail(
+		email,
+		"Project iGreen - Green Bond tokenized and allotted",
 		mainBody,
 		cc,
 		bcc
@@ -795,4 +888,8 @@ module.exports = {
 	SubscriptionFundsFailed,
 	DisbursementFundsSuccess,
 	DisbursementFundsFailed,
+	RepaymentFundsSuccess,
+	RepaymentFundsFailed,
+	PayoutFundsSuccess,
+	PayoutFundsFailed,
 };
