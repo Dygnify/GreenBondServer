@@ -188,7 +188,6 @@ const createGreenBond = async (bond) => {
 								tx.investorTransactionType === 0 &&
 								tx.bondId === bond.Id
 						);
-						console.log(transactions);
 						let emailsTo = [
 							{ companyName: companyName, email: res.data.email },
 						];
@@ -315,14 +314,62 @@ const getGreenBondOption = (field, value) => {
 				"X-API-KEY": process.env.SPYDRA_API_KEY,
 			},
 		};
+	} else if (field === "borrowerId") {
+		return {
+			method: "get",
+			url: `${process.env.SPYDRA_API_URL}/tokenize/${process.env.SPYDRA_APP_ID}/asset/all?assetType=GreenBond&actAs=borrowerId:${value}`,
+			headers: {
+				"X-API-KEY": process.env.SPYDRA_API_KEY,
+			},
+		};
+	} else {
+		let data = JSON.stringify({
+			query: `{
+			  GreenBond(${field}: "${value}"){
+				  Id,
+				  borrowerId,
+				  capital_loss,
+				  collateralHash,
+				  collateral_document_description, 
+				  collateral_document_name,
+				  collateral_filename,
+				  companyDetails,
+				  loan_amount,
+				  loan_interest,
+				  loan_name,
+				  loan_purpose,
+				  loan_tenure,
+				  loan_type,
+				  payment_frequency,
+				  status,
+				  createdOn,
+				  isRecurring,
+				  isPercentageOfCoupon,
+				  percentageOfCoupon,
+				  fixedAmount,
+				  investorUpfrontFeesPercentage,
+				  juniorTranchPercentage,
+				  juniorTranchFloatInterestPercentage,
+				  ghgEmissionReduction,
+				  sopDocHash,
+				  issueNoteDoc,
+				  delayChargeRatePercentage,
+				  totalSubscribed,
+				  requestType,
+				  custodian
+		  }}`,
+		});
+		return {
+			method: "post",
+			maxBodyLength: Infinity,
+			url: `${process.env.SPYDRA_API_URL}/tokenize/${process.env.SPYDRA_APP_ID}/graphql`,
+			headers: {
+				"X-API-KEY": process.env.SPYDRA_API_KEY,
+				"Content-Type": "application/json",
+			},
+			data: data,
+		};
 	}
-	return {
-		method: "get",
-		url: `${process.env.SPYDRA_API_URL}/tokenize/${process.env.SPYDRA_APP_ID}/asset/all?assetType=GreenBond&actAs=borrowerId:${value}`,
-		headers: {
-			"X-API-KEY": process.env.SPYDRA_API_KEY,
-		},
-	};
 };
 
 const getGreenBond = async ({ field, value }) => {
@@ -338,10 +385,17 @@ const getGreenBond = async ({ field, value }) => {
 			let res = result.res;
 			if (field === "Id") {
 				res.data = eDCryptBondData(res.data);
-			} else {
+			} else if (field === "loan_name" || field === "borrowerId") {
 				if (res.count) {
 					res.records = res.records.map((element) => {
 						element.data = eDCryptBondData(element.data);
+						return element;
+					});
+				}
+			} else {
+				if (result.code === 200) {
+					res.data.GreenBond = res.data.GreenBond.map((element) => {
+						element = eDCryptBondData(element);
 						return element;
 					});
 				}
