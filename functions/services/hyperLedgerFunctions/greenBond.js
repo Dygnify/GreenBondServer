@@ -294,7 +294,7 @@ const createGreenBond = async (bond) => {
 };
 
 const getGreenBondOption = (field, value) => {
-	if (!field || !value) {
+	if (!field || value === undefined) {
 		return;
 	}
 	logger.log(field, value);
@@ -390,7 +390,7 @@ const getGreenBondOption = (field, value) => {
 const getGreenBond = async ({ field, value }) => {
 	logger.info("hyperLedger greenBond getGreenBond execution started");
 	logger.log(field, value);
-	if (!field || !value) {
+	if (!field || value === undefined) {
 		return;
 	}
 	try {
