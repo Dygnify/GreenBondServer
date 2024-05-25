@@ -294,7 +294,7 @@ const createGreenBond = async (bond) => {
 };
 
 const getGreenBondOption = (field, value) => {
-	if (!field || !value) {
+	if (!field || value === undefined) {
 		return;
 	}
 	logger.log(field, value);
@@ -323,9 +323,24 @@ const getGreenBondOption = (field, value) => {
 			},
 		};
 	} else {
+		let queryFields;
+		if (typeof field === "string") {
+			let fieldValue = typeof value === "string" ? `"${value}"` : value;
+			queryFields = `${field}: ${fieldValue}`;
+		} else {
+			queryFields = field
+				.map((fieldElement, index) => {
+					let valueElement =
+						typeof value[index] === "string"
+							? `"${value[index]}"`
+							: value[index];
+					return `${fieldElement}: ${valueElement}`;
+				})
+				.join(", ");
+		}
 		let data = JSON.stringify({
 			query: `{
-			  GreenBond(${field}: "${value}"){
+			  GreenBond(${queryFields}){
 				  Id,
 				  borrowerId,
 				  capital_loss,
@@ -375,7 +390,7 @@ const getGreenBondOption = (field, value) => {
 const getGreenBond = async ({ field, value }) => {
 	logger.info("hyperLedger greenBond getGreenBond execution started");
 	logger.log(field, value);
-	if (!field || !value) {
+	if (!field || value === undefined) {
 		return;
 	}
 	try {
