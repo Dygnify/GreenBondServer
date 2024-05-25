@@ -371,7 +371,8 @@ const getGreenBondOption = (field, value) => {
 				  delayChargeRatePercentage,
 				  totalSubscribed,
 				  requestType,
-				  custodian
+				  custodian,
+				  diligence
 		  }}`,
 		});
 		return {
