@@ -9,7 +9,7 @@ const {
 	tokenizeBond,
 	matureBond,
 } = require("../emailHelper");
-const { getUser, getAllUser } = require("./userAsset");
+const { getUser, getAllUser, getUserProfile } = require("./userAsset");
 const { getTx } = require("./getTx");
 const {
 	convertTimestampToDate,
@@ -129,17 +129,23 @@ const createGreenBond = async (bond) => {
 		} else {
 			switch (action) {
 				case "Admin Approved":
+					var diligenceCompanyName = await getUserProfile(
+						bond.diligence
+					);
 					await adminApproval(
-						companyName ? companyName : "User",
-						res.data.email,
+						diligenceCompanyName ? diligenceCompanyName : "User",
+						bond.diligence,
 						true,
 						admins
 					);
 					break;
 				case "Admin Rejected":
+					var diligenceCompanyName = await getUserProfile(
+						bond.diligence
+					);
 					await adminApproval(
-						companyName ? companyName : "User",
-						res.data.email,
+						diligenceCompanyName ? diligenceCompanyName : "User",
+						bond.diligence,
 						false,
 						admins
 					);
