@@ -32,6 +32,7 @@ const {
 } = require("../helper/nftHelper");
 const { amortisationOptions } = require("../helper/amortisationHelper");
 const { getPendingTransactions } = require("../helper/transactionHelper");
+const { RequestType } = require("../helper/greenBondHelper");
 
 const createTxOption = (transaction) => {
 	if (!transaction) {
@@ -125,6 +126,7 @@ const createTx = async (transaction) => {
 						if (result.Id) {
 							await SubscriptionFundsSuccess(
 								companyName ? companyName : "User",
+								RequestType?.[bond.requestType],
 								email,
 								[bond.custodian],
 								admins,
@@ -141,6 +143,7 @@ const createTx = async (transaction) => {
 					try {
 						await SubscriptionFundsFailed(
 							companyName ? companyName : "User",
+							RequestType?.[bond.requestType],
 							email,
 							[bond.custodian],
 							admins,
@@ -161,6 +164,7 @@ const createTx = async (transaction) => {
 								custodianCompanyName
 									? custodianCompanyName
 									: "User",
+								RequestType?.[bond.requestType],
 								bond.custodian,
 								email,
 								admins,
@@ -179,6 +183,7 @@ const createTx = async (transaction) => {
 							custodianCompanyName
 								? custodianCompanyName
 								: "User",
+							RequestType?.[bond.requestType],
 							bond.custodian,
 							email,
 							admins,
@@ -201,6 +206,7 @@ const createTx = async (transaction) => {
 						if (result.Id) {
 							await RepaymentFundsSuccess(
 								companyName ? companyName : "User",
+								RequestType?.[bond.requestType],
 								email,
 								bond.custodian,
 								admins,
@@ -217,6 +223,7 @@ const createTx = async (transaction) => {
 					try {
 						await RepaymentFundsFailed(
 							companyName ? companyName : "User",
+							RequestType?.[bond.requestType],
 							email,
 							bond.custodian,
 							admins,
@@ -242,6 +249,7 @@ const createTx = async (transaction) => {
 								custodianCompanyName
 									? custodianCompanyName
 									: "User",
+								RequestType?.[bond.requestType],
 								bond.custodian,
 								email,
 								admins,
@@ -260,6 +268,7 @@ const createTx = async (transaction) => {
 							custodianCompanyName
 								? custodianCompanyName
 								: "User",
+							RequestType?.[bond.requestType],
 							bond.custodian,
 							email,
 							admins,
@@ -515,6 +524,7 @@ const repayTransactionConfirm = async (bond, originalData, email, admins) => {
 			const custodianCompanyName = await getUserProfile(custodianEmail);
 			await repayment(
 				custodianCompanyName ? custodianCompanyName : "User",
+				RequestType?.[bond.requestType],
 				custodianEmail,
 				email,
 				originalData.bondName,
@@ -624,6 +634,7 @@ const payoutTransactionConfirm = async (
 			if (res.Id) {
 				await distributePay(
 					companyName ? companyName : "User",
+					RequestType?.[bond.requestType],
 					email,
 					bond.custodian,
 					originalData.bondName,
