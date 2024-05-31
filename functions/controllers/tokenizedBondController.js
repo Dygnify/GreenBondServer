@@ -17,6 +17,7 @@ const {
 	getAllUser,
 } = require("../services/hyperLedgerFunctions/userAsset");
 const { formatCurrency } = require("../services/helper/helperFunctions");
+const { RequestType } = require("../services/helper/greenBondHelper");
 
 // Create Transaction
 const createTokenizedBond = async (req, res) => {
@@ -153,7 +154,9 @@ const sendDueDateReminderMail = async () => {
 					<tr>
 					<td class="wrapper">
 					<p>Dear ${companyName},</p>
-					<p>The Green bond ${bond.loan_name} repayment of ${
+					<p>The Green ${RequestType?.[bond.requestType]} ${
+						bond.loan_name
+					} repayment of ${
 						process.env.CURRENCY_SYMBOL
 					}${formatCurrency(
 						tokenizedBond.emiAmount
@@ -165,7 +168,9 @@ const sendDueDateReminderMail = async () => {
 
 					await sendEmail(
 						res.data.email,
-						"Project iGreen - Green Bond repayment due",
+						`Project iGreen - Green ${
+							RequestType?.[bond.requestType]
+						} repayment due`,
 						mainBody,
 						profile.email,
 						admins

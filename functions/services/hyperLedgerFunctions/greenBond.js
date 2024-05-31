@@ -9,7 +9,7 @@ const {
 	tokenizeBond,
 	matureBond,
 } = require("../emailHelper");
-const { getUser, getAllUser } = require("./userAsset");
+const { getUser, getAllUser, getUserProfile } = require("./userAsset");
 const { getTx } = require("./getTx");
 const {
 	convertTimestampToDate,
@@ -17,6 +17,7 @@ const {
 	decryptData,
 } = require("../helper/helperFunctions");
 const uuid = require("uuid");
+const { RequestType } = require("../helper/greenBondHelper");
 
 const createGreenBondOption = (bond) => {
 	if (!bond) {
@@ -123,23 +124,32 @@ const createGreenBond = async (bond) => {
 		if (!bond.Id) {
 			await borrowRequestCreation(
 				companyName ? companyName : "User",
+				RequestType?.[bond.requestType],
 				res.data.email,
 				admins
 			);
 		} else {
 			switch (action) {
 				case "Admin Approved":
+					var diligenceCompanyName = await getUserProfile(
+						bond.diligence
+					);
 					await adminApproval(
-						companyName ? companyName : "User",
-						res.data.email,
+						diligenceCompanyName ? diligenceCompanyName : "User",
+						RequestType?.[bond.requestType],
+						bond.diligence,
 						true,
 						admins
 					);
 					break;
 				case "Admin Rejected":
+					var diligenceCompanyName = await getUserProfile(
+						bond.diligence
+					);
 					await adminApproval(
-						companyName ? companyName : "User",
-						res.data.email,
+						diligenceCompanyName ? diligenceCompanyName : "User",
+						RequestType?.[bond.requestType],
+						bond.diligence,
 						false,
 						admins
 					);
@@ -147,6 +157,7 @@ const createGreenBond = async (bond) => {
 				case "Diligence Approved":
 					await diligenceApproval(
 						companyName ? companyName : "User",
+						RequestType?.[bond.requestType],
 						res.data.email,
 						true,
 						admins
@@ -161,6 +172,7 @@ const createGreenBond = async (bond) => {
 						const companyName = profile.companyName;
 						await bondAvailableForSubscription(
 							companyName ? companyName : "User",
+							RequestType?.[bond.requestType],
 							sub.data.email,
 							bond.loan_name,
 							admins
@@ -170,6 +182,7 @@ const createGreenBond = async (bond) => {
 				case "Diligence Rejected":
 					await diligenceApproval(
 						companyName ? companyName : "User",
+						RequestType?.[bond.requestType],
 						res.data.email,
 						false,
 						admins
@@ -231,6 +244,7 @@ const createGreenBond = async (bond) => {
 								emailsTo[i].companyName
 									? emailsTo[i].companyName
 									: "User",
+								RequestType?.[bond.requestType],
 								emailsTo[i].email,
 								admins,
 								bond.loan_name
@@ -253,6 +267,7 @@ const createGreenBond = async (bond) => {
 					});
 					await tokenizeBond(
 						companyName ? companyName : "User",
+						RequestType?.[bond.requestType],
 						res.data.email,
 						[...subscribersArray, ...custodians],
 						bond.loan_name,
@@ -276,6 +291,7 @@ const createGreenBond = async (bond) => {
 
 					await matureBond(
 						companyName ? companyName : "User",
+						RequestType?.[bond.requestType],
 						res.data.email,
 						[...subscribersArr, ...custodianUsers],
 						bond.loan_name,
