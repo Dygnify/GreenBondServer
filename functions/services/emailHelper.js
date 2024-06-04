@@ -373,6 +373,7 @@ const passwordChanged = async (name, email, link) => {
 		mainBody
 	);
 };
+
 const createProfile = async (name, email, role, bcc) => {
 	const mainBody = `<!-- START MAIN CONTENT AREA -->
     <tr>
@@ -553,7 +554,6 @@ const repayment = async (
 	name,
 	requestType,
 	email,
-	cc,
 	bondName,
 	dueAmount,
 	repaymentDate,
@@ -576,7 +576,36 @@ const repayment = async (
 		email,
 		`Project iGreen - Green ${requestType} repayment done`,
 		mainBody,
-		cc,
+		"",
+		bcc
+	);
+};
+
+const issuerRepayment = async (
+	name,
+	requestType,
+	email,
+	bondName,
+	dueAmount,
+	repaymentDate,
+	bcc
+) => {
+	const mainBody = `<!-- START MAIN CONTENT AREA -->
+    <tr>
+      <td class="wrapper">
+      <p>Dear ${name},</p>
+      <p>The Green ${requestType} ${bondName} repayment of ${
+		process.env.CURRENCY_SYMBOL
+	}${formatCurrency(dueAmount)} has been done on ${repaymentDate}.
+      <p>Thanks,<br/>Team Project iGreen</p>  
+      </td>
+    </tr>`;
+
+	await sendEmail(
+		email,
+		`Project iGreen - Green ${requestType} repayment successful`,
+		mainBody,
+		"",
 		bcc
 	);
 };
@@ -924,6 +953,7 @@ module.exports = {
 	fullSubscription,
 	tokenizeBond,
 	repayment,
+	issuerRepayment,
 	distributePay,
 	matureBond,
 	resetPasswordMail,

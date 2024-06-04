@@ -12,11 +12,12 @@ const {
 	RepaymentFundsFailed,
 	PayoutFundsSuccess,
 	PayoutFundsFailed,
+	issuerRepayment,
 } = require("../emailHelper");
 const {
-	getAllUser,
 	getUserProfile,
 	getEmailAndNameByUserId,
+	getUsersWithRole,
 } = require("./userAsset");
 const { encryptData, decryptData } = require("../helper/helperFunctions");
 const { getTokenized, createTokenized } = require("./tokenizedBond");
@@ -33,6 +34,7 @@ const {
 const { amortisationOptions } = require("../helper/amortisationHelper");
 const { getPendingTransactions } = require("../helper/transactionHelper");
 const { RequestType } = require("../helper/greenBondHelper");
+const { Role } = require("../helper/userHelper");
 
 const createTxOption = (transaction) => {
 	if (!transaction) {
@@ -89,13 +91,12 @@ const createTx = async (transaction) => {
 	logger.info("Response from spydra: ", result);
 	if (result.code === 201) {
 		let admins = [];
-		const adminResult = await getAllUser();
+		const adminResult = await getUsersWithRole(Role.Admin);
 
-		adminResult.records.forEach((user) => {
-			if (user.data.role === 4) {
-				admins.push(user.data.email);
-			}
+		adminResult.forEach((user) => {
+			admins.push(user.email);
 		});
+
 		if (transaction.Id) {
 			const { email, companyName } = await getEmailAndNameByUserId(
 				originalData.subscriberId
@@ -201,6 +202,7 @@ const createTx = async (transaction) => {
 							bond,
 							originalData,
 							email,
+							companyName,
 							admins
 						);
 						if (result.Id) {
@@ -499,7 +501,13 @@ const borrowTransactionConfirm = async (bond) => {
 	}
 };
 
-const repayTransactionConfirm = async (bond, originalData, email, admins) => {
+const repayTransactionConfirm = async (
+	bond,
+	originalData,
+	email,
+	companyName,
+	admins
+) => {
 	try {
 		logger.info(
 			"hyperLedger transaction createTx repayTransactionConfirm execution started"
@@ -526,6 +534,14 @@ const repayTransactionConfirm = async (bond, originalData, email, admins) => {
 				custodianCompanyName ? custodianCompanyName : "User",
 				RequestType?.[bond.requestType],
 				custodianEmail,
+				originalData.bondName,
+				originalData.amount,
+				originalData.transactionDate,
+				admins
+			);
+			await issuerRepayment(
+				companyName ? companyName : "User",
+				RequestType?.[bond.requestType],
 				email,
 				originalData.bondName,
 				originalData.amount,

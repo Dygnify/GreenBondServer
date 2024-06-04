@@ -9,7 +9,7 @@ const {
 	tokenizeBond,
 	matureBond,
 } = require("../emailHelper");
-const { getUser, getAllUser, getUserProfile } = require("./userAsset");
+const { getUser, getUserProfile, getUsersWithRole } = require("./userAsset");
 const { getTx } = require("./getTx");
 const {
 	convertTimestampToDate,
@@ -18,6 +18,7 @@ const {
 } = require("../helper/helperFunctions");
 const uuid = require("uuid");
 const { RequestType } = require("../helper/greenBondHelper");
+const { Role, getUserCompanyName } = require("../helper/userHelper");
 
 const createGreenBondOption = (bond) => {
 	if (!bond) {
@@ -83,7 +84,7 @@ const createGreenBond = async (bond) => {
 	if (!bond) {
 		return;
 	}
-	let data = eDCryptBondData(bond, true);
+	let data = eDCryptBondData({ ...bond }, true);
 	let action = data.action;
 	if (action) {
 		delete data.action;
@@ -113,12 +114,10 @@ const createGreenBond = async (bond) => {
 
 		// Get admins
 		let admins = [];
-		const adminResult = await getAllUser();
+		const adminResult = await getUsersWithRole(Role.Admin);
 
-		adminResult.records.forEach((user) => {
-			if (user.data.role === 4) {
-				admins.push(user.data.email);
-			}
+		adminResult.forEach((user) => {
+			admins.push(user.email);
 		});
 
 		if (!bond.Id) {
@@ -131,174 +130,180 @@ const createGreenBond = async (bond) => {
 		} else {
 			switch (action) {
 				case "Admin Approved":
-					var diligenceCompanyName = await getUserProfile(
-						bond.diligence
-					);
-					await adminApproval(
-						diligenceCompanyName ? diligenceCompanyName : "User",
-						RequestType?.[bond.requestType],
-						bond.diligence,
-						true,
-						admins
-					);
-					break;
-				case "Admin Rejected":
-					var diligenceCompanyName = await getUserProfile(
-						bond.diligence
-					);
-					await adminApproval(
-						diligenceCompanyName ? diligenceCompanyName : "User",
-						RequestType?.[bond.requestType],
-						bond.diligence,
-						false,
-						admins
-					);
-					break;
-				case "Diligence Approved":
-					await diligenceApproval(
-						companyName ? companyName : "User",
-						RequestType?.[bond.requestType],
-						res.data.email,
-						true,
-						admins
-					);
-					const result = await getAllUser();
-					const subscribers = result.records.filter(
-						(user) => user.data.role === 0
-					);
-					for (let i = 0; i < subscribers.length; i++) {
-						let sub = subscribers[i];
-						const profile = JSON.parse(sub.data.profile);
-						const companyName = profile.companyName;
-						await bondAvailableForSubscription(
-							companyName ? companyName : "User",
+					try {
+						var diligenceCompanyName = await getUserProfile(
+							bond.diligence
+						);
+						await adminApproval(
+							diligenceCompanyName
+								? diligenceCompanyName
+								: "User",
 							RequestType?.[bond.requestType],
-							sub.data.email,
-							bond.loan_name,
+							bond.diligence,
+							true,
 							admins
 						);
+					} catch (error) {
+						logger.error(error);
 					}
 					break;
+
+				case "Admin Rejected":
+					try {
+						var diligenceCompanyName = await getUserProfile(
+							bond.diligence
+						);
+						await adminApproval(
+							diligenceCompanyName
+								? diligenceCompanyName
+								: "User",
+							RequestType?.[bond.requestType],
+							bond.diligence,
+							false,
+							admins
+						);
+					} catch (error) {
+						logger.error(error);
+					}
+					break;
+
+				case "Diligence Approved":
+					try {
+						await diligenceApproval(
+							companyName ? companyName : "User",
+							RequestType?.[bond.requestType],
+							res.data.email,
+							true,
+							admins
+						);
+						const subscribers = await getUsersWithRole(
+							Role.Subscriber
+						);
+
+						for (let i = 0; i < subscribers.length; i++) {
+							let sub = subscribers[i];
+							const companyName = getUserCompanyName(sub);
+							await bondAvailableForSubscription(
+								companyName ? companyName : "User",
+								RequestType?.[bond.requestType],
+								sub.email,
+								bond.loan_name,
+								admins
+							);
+						}
+					} catch (error) {
+						logger.error(error);
+					}
+					break;
+
 				case "Diligence Rejected":
-					await diligenceApproval(
-						companyName ? companyName : "User",
-						RequestType?.[bond.requestType],
-						res.data.email,
-						false,
-						admins
-					);
+					try {
+						await diligenceApproval(
+							companyName ? companyName : "User",
+							RequestType?.[bond.requestType],
+							res.data.email,
+							false,
+							admins
+						);
+					} catch (error) {
+						logger.error(error);
+					}
 					break;
 
 				case "Invest Bond":
-					if (bond.loan_amount === bond.totalSubscribed) {
-						let transactions = await getTx("bondId", bond.Id);
-						transactions = transactions.records
-							? transactions.records
-							: [];
-						transactions = transactions.map((tx) => tx.data);
-						transactions = transactions.filter(
-							(tx) =>
-								tx.investorTransactionType === 0 &&
-								tx.bondId === bond.Id
-						);
-						let emailsTo = [
-							{ companyName: companyName, email: res.data.email },
-						];
-						const result = await getAllUser();
-
-						result.records.forEach((user) => {
-							if (user.data.role === 2) {
-								const profile = JSON.parse(user.data.profile);
-								const companyName = profile.companyName;
-								emailsTo.push({
-									companyName: companyName,
-									email: user.data.email,
+					try {
+						if (bond.loan_amount === bond.totalSubscribed) {
+							let subscribers = [];
+							let subscribersEmailArray =
+								await getSubscribersFromBondId(bond.Id);
+							for (const subscriberEmail of subscribersEmailArray) {
+								const subscriberCompanyName =
+									await getUserProfile(subscriberEmail);
+								subscribers.push({
+									companyName: subscriberCompanyName
+										? subscriberCompanyName
+										: "User",
+									email: subscriberEmail,
 								});
 							}
-						});
 
-						for (let i = 0; i < transactions.length; i++) {
-							let tx = transactions[i];
-							const res = await getUser(tx.subscriberId);
-							const profile = JSON.parse(res.data.profile);
-							const companyName = profile.companyName;
-							emailsTo.push({
-								companyName: companyName,
-								email: res.data.email,
-							});
-						}
-
-						// Filter unique emails
-						emailsTo = emailsTo.filter((value, index, array) => {
-							return (
-								array.findIndex(
-									(obj) =>
-										obj.companyName === value.companyName &&
-										obj.email === value.email
-								) === index
+							const custodianCompanyName = await getUserProfile(
+								bond.custodian
 							);
-						});
 
-						for (let i = 0; i < emailsTo.length; i++) {
-							await fullSubscription(
-								emailsTo[i].companyName
-									? emailsTo[i].companyName
-									: "User",
-								RequestType?.[bond.requestType],
-								emailsTo[i].email,
-								admins,
-								bond.loan_name
-							);
+							let emailsTo = [
+								{
+									companyName: custodianCompanyName
+										? custodianCompanyName
+										: "User",
+									email: bond.custodian,
+								},
+								...subscribers,
+								{
+									companyName: companyName
+										? companyName
+										: "User",
+									email: res.data.email,
+								},
+							];
+
+							for (let i = 0; i < emailsTo.length; i++) {
+								await fullSubscription(
+									emailsTo[i].companyName
+										? emailsTo[i].companyName
+										: "User",
+									RequestType?.[bond.requestType],
+									emailsTo[i].email,
+									admins,
+									bond.loan_name
+								);
+							}
 						}
+					} catch (error) {
+						logger.error(error);
 					}
 					break;
 
 				case "Tokenize Bond":
-					const subscribersArray = await getSubscribersFromBondId(
-						bond.Id
-					);
-					let custodians = [];
-					const results = await getAllUser();
+					try {
+						const subscribersArray = await getSubscribersFromBondId(
+							bond.Id
+						);
 
-					results.records.forEach((user) => {
-						if (user.data.role === 2) {
-							custodians.push(user.data.email);
-						}
-					});
-					await tokenizeBond(
-						companyName ? companyName : "User",
-						RequestType?.[bond.requestType],
-						res.data.email,
-						[...subscribersArray, ...custodians],
-						bond.loan_name,
-						admins
-					);
+						await tokenizeBond(
+							companyName ? companyName : "User",
+							RequestType?.[bond.requestType],
+							res.data.email,
+							[...subscribersArray, bond.custodian],
+							bond.loan_name,
+							admins
+						);
+					} catch (error) {
+						logger.error(error);
+					}
 					break;
 
 				case "Mature Bond":
-					const subscribersArr = await getSubscribersFromBondId(
-						bond.Id
-					);
-					const todayDate = convertTimestampToDate(Date.now());
-					let custodianUsers = [];
-					const custodianResult = await getAllUser();
+					try {
+						const subscribersArr = await getSubscribersFromBondId(
+							bond.Id
+						);
+						const todayDate = convertTimestampToDate(Date.now());
 
-					custodianResult.records.forEach((user) => {
-						if (user.data.role === 2) {
-							custodianUsers.push(user.data.email);
-						}
-					});
-
-					await matureBond(
-						companyName ? companyName : "User",
-						RequestType?.[bond.requestType],
-						res.data.email,
-						[...subscribersArr, ...custodianUsers],
-						bond.loan_name,
-						todayDate,
-						admins
-					);
+						await matureBond(
+							companyName ? companyName : "User",
+							RequestType?.[bond.requestType],
+							res.data.email,
+							[...subscribersArr, bond.custodian],
+							bond.loan_name,
+							todayDate,
+							admins
+						);
+					} catch (error) {
+						logger.error(error);
+					}
 					break;
+
 				default:
 					break;
 			}

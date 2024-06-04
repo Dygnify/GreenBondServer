@@ -12,6 +12,7 @@ const crypto = require("crypto");
 const { getFirebaseAdminAuth } = require("../../firebaseInit");
 const uuid = require("uuid");
 const { encryptData, decryptData } = require("../helper/helperFunctions");
+const { Role: UserRole } = require("../helper/userHelper");
 
 const Role = [
 	"Subscriber",
@@ -95,12 +96,10 @@ const createNewUser = async (user) => {
 	if (result.code === 201) {
 		// Get admins
 		let admins = [];
-		const adminResult = await getAllUser();
+		const adminResult = await getUsersWithRole(UserRole.Admin);
 
-		adminResult.records.forEach((user) => {
-			if (user.data.role === 4) {
-				admins.push(user.data.email);
-			}
+		adminResult.forEach((user) => {
+			admins.push(user.email);
 		});
 
 		if (!user.Id) {
